@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPHIT — Bureau Syndical</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --or:#C9A84C; --or-light:#E8C96D; --or-dark:#9A7A2E;
+  --noir:#0D0D0D; --gris-fonce:#1A1A1A; --gris-moyen:#2A2A2A;
+  --gris-panel:#222222; --gris-bord:#333333;
+  --blanc:#F5F0E8; --rouge:#C0392B; --vert:#27AE60;
+  --orange:#E67E22; --bleu:#2980B9;
+  --texte-sec:#888888; --texte-ter:#555555;
+  --sb-w:240px; --sb-c:58px;
+  --tr:.25s cubic-bezier(.4,0,.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);min-height:100vh;overflow-x:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sb-w);background:var(--gris-fonce);border-right:1px solid var(--gris-bord);display:flex;flex-direction:column;z-index:200;transition:width var(--tr);overflow:hidden;}
+.sidebar.col{width:var(--sb-c);}
+.sb-tog{position:absolute;top:20px;right:-12px;width:24px;height:24px;border-radius:50%;background:var(--gris-panel);border:1px solid var(--gris-bord);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--texte-sec);transition:all var(--tr);z-index:10;}
+.sb-tog:hover{color:var(--or);border-color:var(--or);}
+.sidebar.col .sb-tog{transform:rotate(180deg);}
+.sb-logo{padding:18px 12px 16px;border-bottom:1px solid var(--gris-bord);display:flex;align-items:center;gap:10px;min-height:68px;white-space:nowrap;overflow:hidden;flex-shrink:0;}
+.logo-ic{width:32px;height:32px;flex-shrink:0;background:linear-gradient(135deg,var(--or),var(--or-dark));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.logo-tx{opacity:1;transition:opacity var(--tr);}
+.sidebar.col .logo-tx{opacity:0;pointer-events:none;}
+.logo-nm{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--or);}
+.logo-dp{font-size:9px;color:var(--texte-sec);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
+.sb-nav{flex:1;padding:10px 7px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;overflow-x:hidden;}
+.nav-sl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--texte-ter);padding:8px 10px 4px;white-space:nowrap;transition:opacity var(--tr);}
+.sidebar.col .nav-sl{opacity:0;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;cursor:pointer;transition:all .18s;font-size:13px;font-weight:400;color:var(--texte-sec);white-space:nowrap;position:relative;}
+.nav-item:hover{background:var(--gris-moyen);color:var(--blanc);}
+.nav-item.active{background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.04));color:var(--or);font-weight:600;border:1px solid rgba(201,168,76,.2);}
+.nav-ic{font-size:17px;width:22px;text-align:center;flex-shrink:0;}
+.nav-lb{transition:opacity var(--tr);}
+.sidebar.col .nav-lb{opacity:0;width:0;}
+.nav-bdg{margin-left:auto;background:var(--rouge);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:'DM Mono',monospace;transition:opacity var(--tr);flex-shrink:0;}
+.sidebar.col .nav-bdg{opacity:0;}
+.sidebar.col .nav-item[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:calc(var(--sb-c) + 4px);top:50%;transform:translateY(-50%);background:var(--gris-panel);border:1px solid var(--gris-bord);color:var(--blanc);font-size:12px;padding:5px 10px;border-radius:6px;white-space:nowrap;z-index:300;}
+.sb-user{padding:12px 10px;border-top:1px solid var(--gris-bord);display:flex;align-items:center;gap:10px;white-space:nowrap;overflow:hidden;flex-shrink:0;}
+.user-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--or),var(--or-dark));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--noir);}
+.user-tx{transition:opacity var(--tr);}
+.sidebar.col .user-tx{opacity:0;}
+.user-nm{font-size:12px;font-weight:600;color:var(--blanc);}
+.user-rl{font-size:10px;color:var(--or);font-weight:500;}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sb-w);min-height:100vh;display:flex;flex-direction:column;transition:margin-left var(--tr);}
+.main.wide{margin-left:var(--sb-c);}
+.topbar{padding:14px 26px;border-bottom:1px solid var(--gris-bord);display:flex;align-items:center;gap:14px;background:var(--gris-fonce);position:sticky;top:0;z-index:50;}
+.topbar-title h1{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:var(--blanc);}
+.topbar-title p{font-size:11px;color:var(--texte-sec);margin-top:1px;}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;}
+.content{flex:1;padding:24px 26px;}
+.page{display:none;animation:fi .2s ease;}
+.page.active{display:block;}
+@keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 15px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--or);color:var(--noir);}
+.btn-primary:hover{background:var(--or-light);}
+.btn-ghost{background:transparent;color:var(--texte-sec);border:1px solid var(--gris-bord);}
+.btn-ghost:hover{color:var(--blanc);background:var(--gris-moyen);border-color:var(--gris-moyen);}
+.btn-danger{background:rgba(192,57,43,.15);color:#E74C3C;border:1px solid rgba(192,57,43,.3);}
+.btn-danger:hover{background:rgba(192,57,43,.25);}
+.btn-wa{background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.3);}
+.btn-wa:hover{background:rgba(37,211,102,.3);}
+.btn-call{background:rgba(41,128,185,.15);color:#5DADE2;border:1px solid rgba(41,128,185,.3);}
+.btn-call:hover{background:rgba(41,128,185,.3);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:22px;}
+.stat-card{background:var(--gris-panel);border:1px solid var(--gris-bord);border-radius:12px;padding:17px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.sc-or::before{background:linear-gradient(90deg,var(--or),var(--or-light));}
+.sc-gn::before{background:linear-gradient(90deg,#27AE60,#2ECC71);}
+.sc-rd::before{background:linear-gradient(90deg,#C0392B,#E74C3C);}
+.sc-bl::before{background:linear-gradient(90deg,#2980B9,#5DADE2);}
+.stat-lbl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--texte-sec);margin-bottom:7px;}
+.stat-val{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--blanc);line-height:1;margin-bottom:4px;}
+.stat-det{font-size:11px;color:var(--texte-sec);}
+.stat-ico{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:28px;opacity:.07;}
+
+/* ── PANELS ── */
+.panel{background:var(--gris-panel);border:1px solid var(--gris-bord);border-radius:12px;padding:17px;}
+.panel-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--blanc);margin-bottom:13px;}
+.two-col{display:grid;grid-template-columns:2fr 1fr;gap:16px;}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--gris-panel);border:1px solid var(--gris-bord);border-radius:12px;overflow:hidden;}
+.table-toolbar{padding:11px 14px;border-bottom:1px solid var(--gris-bord);display:flex;gap:8px;flex-wrap:wrap;}
+.srch{flex:1;min-width:140px;background:var(--gris-moyen);border:1px solid var(--gris-bord);border-radius:8px;padding:7px 11px;color:var(--blanc);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;}
+.srch:focus{border-color:var(--or);}
+.srch::placeholder{color:var(--texte-ter);}
+.fsel{background:var(--gris-moyen);border:1px solid var(--gris-bord);border-radius:8px;padding:7px 9px;color:var(--blanc);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:9px 13px;text-align:left;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--texte-ter);border-bottom:1px solid var(--gris-bord);background:rgba(0,0,0,.2);}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;cursor:pointer;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(255,255,255,.03);}
+tbody td{padding:10px 13px;font-size:13px;color:var(--blanc);vertical-align:middle;}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;}
+.b-gn{background:rgba(39,174,96,.15);color:#2ECC71;border:1px solid rgba(39,174,96,.25);}
+.b-rd{background:rgba(192,57,43,.15);color:#E74C3C;border:1px solid rgba(192,57,43,.25);}
+.b-or{background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.25);}
+.b-og{background:rgba(230,126,34,.15);color:#F39C12;border:1px solid rgba(230,126,34,.25);}
+.b-bl{background:rgba(41,128,185,.15);color:#5DADE2;border:1px solid rgba(41,128,185,.25);}
+.b-vl{background:rgba(155,89,182,.15);color:#A569BD;border:1px solid rgba(155,89,182,.25);}
+.b-gy{background:rgba(100,100,100,.15);color:#AAA;border:1px solid rgba(100,100,100,.25);}
+
+/* ── MODAL ── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--gris-panel);border:1px solid var(--gris-bord);border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:mi .22s ease;}
+@keyframes mi{from{opacity:0;transform:translateY(16px) scale(.97);}to{opacity:1;transform:none;}}
+.mhd{padding:19px 21px 13px;border-bottom:1px solid var(--gris-bord);display:flex;align-items:center;justify-content:space-between;}
+.mtitle{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;color:var(--blanc);}
+.mclose{background:none;border:none;color:var(--texte-sec);font-size:19px;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:5px;}
+.mclose:hover{background:var(--gris-moyen);color:var(--blanc);}
+.mbody{padding:20px;}
+.mfoot{padding:13px 21px;border-top:1px solid var(--gris-bord);display:flex;gap:8px;justify-content:flex-end;}
+
+/* ── FORM ── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fg.one{grid-template-columns:1fr;}
+.fgp{display:flex;flex-direction:column;gap:5px;}
+.fgp.s2{grid-column:span 2;}
+.flbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--texte-sec);}
+.finp,.fsel2,.fta{background:var(--gris-moyen);border:1px solid var(--gris-bord);border-radius:8px;padding:8px 11px;color:var(--blanc);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.finp:focus,.fsel2:focus,.fta:focus{border-color:var(--or);}
+.fta{resize:vertical;min-height:72px;}
+.fsel2 option{background:var(--gris-fonce);}
+
+/* ── CONTACTS GRID ── */
+.cat-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.cat-pill{padding:5px 12px;border-radius:20px;border:1px solid var(--gris-bord);background:var(--gris-moyen);color:var(--texte-sec);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.cat-pill.on{border-color:var(--or);background:rgba(201,168,76,.1);color:var(--or);}
+.contacts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
+.cc{background:var(--gris-panel);border:1px solid var(--gris-bord);border-radius:12px;padding:15px;transition:all .2s;display:flex;flex-direction:column;gap:9px;}
+.cc:hover{border-color:rgba(201,168,76,.25);transform:translateY(-1px);}
+.cc-org{font-size:13px;font-weight:700;color:var(--blanc);line-height:1.25;margin-top:5px;}
+.cc-resp{font-size:12px;color:var(--texte-sec);}
+.cc-tel{font-size:12px;color:var(--bleu);font-family:'DM Mono',monospace;}
+
+/* ── DOCS ── */
+.doc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
+.dc{background:var(--gris-panel);border:1px solid var(--gris-bord);border-radius:12px;padding:15px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:8px;}
+.dc:hover{border-color:var(--or);transform:translateY(-2px);}
+
+/* ── RÉUNIONS ── */
+.reu-list{display:flex;flex-direction:column;gap:10px;}
+.reu-card{background:var(--gris-panel);border:1px solid var(--gris-bord);border-radius:12px;padding:15px 17px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all .2s;}
+.reu-card:hover{border-color:rgba(201,168,76,.3);}
+.reu-date{background:linear-gradient(135deg,var(--or),var(--or-dark));border-radius:9px;width:46px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;color:var(--noir);font-weight:700;}
+.rj{font-size:18px;line-height:1;}
+.rm{font-size:9px;text-transform:uppercase;letter-spacing:1px;}
+
+/* ── ALERTES ── */
+.at-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:11px;}
+.at-btn{padding:8px 6px;border-radius:8px;border:1px solid var(--gris-bord);background:var(--gris-moyen);color:var(--texte-sec);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;text-align:center;transition:all .2s;}
+.at-btn.on{border-color:var(--or);background:rgba(201,168,76,.1);color:var(--or);}
+
+/* ── ACTIVITY ── */
+.act-list{display:flex;flex-direction:column;}
+.act-item{display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.act-item:last-child{border-bottom:none;}
+.act-dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.act-txt{flex:1;font-size:12px;color:var(--blanc);line-height:1.4;}
+.act-t{font-size:11px;color:var(--texte-ter);font-family:'DM Mono',monospace;white-space:nowrap;}
+
+/* ── COTIS BAR ── */
+.cbar{height:5px;background:var(--gris-moyen);border-radius:3px;overflow:hidden;margin-top:4px;}
+.cfill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--vert),#2ECC71);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--gris-panel);border:1px solid var(--gris-bord);border-radius:10px;padding:12px 15px;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--blanc);z-index:999;transform:translateY(60px);opacity:0;transition:all .3s ease;max-width:290px;box-shadow:0 8px 30px rgba(0,0,0,.4);}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* ── M-INIT ── */
+.mi{width:33px;height:33px;border-radius:8px;background:linear-gradient(135deg,#2A2A2A,#333);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--or);font-family:'Playfair Display',serif;border:1px solid var(--gris-bord);flex-shrink:0;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--gris-bord);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sb">
+  <div class="sb-tog" onclick="toggleSB()">◀</div>
+  <div class="sb-logo">
+    <div class="logo-ic">🏨</div>
+    <div class="logo-tx"><div class="logo-nm">SPHIT</div><div class="logo-dp">Syndicat Patronal · Tourisme</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-sl">Navigation</div>
+    <div class="nav-item active" data-tip="Tableau de bord" onclick="gp('dashboard',this)"><span class="nav-ic">📊</span><span class="nav-lb">Tableau de bord</span></div>
+    <div class="nav-item" data-tip="Membres" onclick="gp('membres',this)"><span class="nav-ic">🏨</span><span class="nav-lb">Membres</span><span class="nav-bdg" id="bdg-r">0</span></div>
+    <div class="nav-item" data-tip="Contacts & Partenaires" onclick="gp('contacts',this)"><span class="nav-ic">📞</span><span class="nav-lb">Contacts & Partenaires</span></div>
+    <div class="nav-item" data-tip="Documents" onclick="gp('documents',this)"><span class="nav-ic">📂</span><span class="nav-lb">Documents</span></div>
+    <div class="nav-item" data-tip="Réunions" onclick="gp('reunions',this)"><span class="nav-ic">📅</span><span class="nav-lb">Réunions</span></div>
+    <div class="nav-item" data-tip="Alertes" onclick="gp('alertes',this)"><span class="nav-ic">🔔</span><span class="nav-lb">Alertes</span></div>
+  </nav>
+  <div class="sb-user">
+    <div class="user-av">BS</div>
+    <div class="user-tx"><div class="user-nm">Bureau du Syndicat</div><div class="user-rl">SPHIT — Accès interne</div></div>
+  </div>
+</aside>
+
+<main class="main" id="mn">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1 id="ptitle">Tableau de bord</h1>
+      <p id="psub">Vue d'ensemble du syndicat</p>
+    </div>
+    <div class="topbar-actions" id="pactions"></div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card sc-or"><div class="stat-lbl">Total membres</div><div class="stat-val" id="st-tot">0</div><div class="stat-det">établissements</div><div class="stat-ico">🏨</div></div>
+        <div class="stat-card sc-gn"><div class="stat-lbl">Cotisations à jour</div><div class="stat-val" id="st-aj">0</div><div class="stat-det" id="st-pct">—</div><div class="stat-ico">✅</div></div>
+        <div class="stat-card sc-rd"><div class="stat-lbl">En retard</div><div class="stat-val" id="st-rt">0</div><div class="stat-det">cotisations impayées</div><div class="stat-ico">⚠️</div></div>
+        <div class="stat-card sc-bl"><div class="stat-lbl">Prochaine réunion</div><div class="stat-val" style="font-size:20px" id="st-rd">—</div><div class="stat-det" id="st-rt2">—</div><div class="stat-ico">📅</div></div>
+      </div>
+      <div class="two-col">
+        <div class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px">
+            <div class="panel-title">⚠️ Retards de cotisation</div>
+            <button class="btn btn-danger btn-sm" onclick="notifAll()">Notifier tous</button>
+          </div>
+          <div id="dash-rt"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">🕐 Activité récente</div>
+          <div class="act-list" id="act-list">
+            <div class="act-item"><div class="act-dot" style="background:var(--or)"></div><div class="act-txt">Application démarrée</div><div class="act-t">—</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <div class="panel-title">📊 Taux de cotisation par secteur</div>
+        <div id="sect-stats"></div>
+      </div>
+    </div>
+
+    <!-- MEMBRES -->
+    <div class="page" id="page-membres">
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <input class="srch" id="sm" placeholder="🔍  Établissement, promoteur…" oninput="fm()">
+          <select class="fsel" id="fsec" onchange="fm()"><option value="">Tous secteurs</option><option>Hôtel</option><option>Restaurant</option><option>Auberge</option><option>Tour-Opérateur</option><option>Autre</option></select>
+          <select class="fsel" id="fcot" onchange="fm()"><option value="">Toutes cotisations</option><option value="A jour">À jour</option><option value="En retard">En retard</option><option value="Partiel">Partiel</option></select>
+        </div>
+        <table><thead><tr><th>Établissement</th><th>Secteur</th><th>Promoteur</th><th>Employés</th><th>Téléphone</th><th>Cotisation</th><th>Actions</th></tr></thead>
+        <tbody id="mtbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- CONTACTS -->
+    <div class="page" id="page-contacts">
+      <div class="cat-row" id="cat-pills"></div>
+      <div class="contacts-grid" id="cgrid"></div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="page" id="page-documents">
+      <div class="doc-grid" id="dgrid"></div>
+    </div>
+
+    <!-- RÉUNIONS -->
+    <div class="page" id="page-reunions">
+      <div class="reu-list" id="rlist"></div>
+    </div>
+
+    <!-- ALERTES -->
+    <div class="page" id="page-alertes">
+      <div class="panel" style="margin-bottom:18px">
+        <div class="panel-title">🔔 Nouvelle alerte</div>
+        <div class="at-grid">
+          <button class="at-btn on" onclick="selAT(this,'Contrôle')">⚖️ Contrôle</button>
+          <button class="at-btn" onclick="selAT(this,'Réglementation')">📜 Règlement.</button>
+          <button class="at-btn" onclick="selAT(this,'Information')">ℹ️ Info</button>
+          <button class="at-btn" onclick="selAT(this,'Urgent')">🚨 Urgent</button>
+        </div>
+        <div class="fg one" style="gap:10px">
+          <div class="fgp"><label class="flbl">Objet</label><input class="finp" id="al-o" placeholder="ex : Contrôle fiscal prévu…"></div>
+          <div class="fgp"><label class="flbl">Message</label><textarea class="fta" id="al-m" rows="4"></textarea></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+          <button class="btn btn-wa" onclick="envAlerte()">📲 Envoyer via WhatsApp</button>
+          <span style="font-size:12px;color:var(--texte-sec)">Message pré-rempli</span>
+        </div>
+      </div>
+      <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--blanc);margin-bottom:12px">Historique</div>
+      <div id="al-hist" style="display:flex;flex-direction:column;gap:9px"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- MODAL FICHE MEMBRE -->
+<div class="modal-ov" id="mod-m"><div class="modal"><div class="mhd"><div class="mtitle">Fiche membre</div><button class="mclose" onclick="cm('mod-m')">✕</button></div><div class="mbody" id="mod-m-body"></div></div></div>
+
+<!-- MODAL ADD MEMBRE -->
+<div class="modal-ov" id="mod-am"><div class="modal">
+  <div class="mhd"><div class="mtitle">➕ Nouveau membre</div><button class="mclose" onclick="cm('mod-am')">✕</button></div>
+  <div class="mbody"><div class="fg">
+    <div class="fgp s2"><label class="flbl">Nom établissement *</label><input class="finp" id="am-n"></div>
+    <div class="fgp"><label class="flbl">Secteur</label><select class="fsel2" id="am-s"><option>Hôtel</option><option>Restaurant</option><option>Auberge</option><option>Tour-Opérateur</option><option>Autre</option></select></div>
+    <div class="fgp"><label class="flbl">Employés</label><input type="number" class="finp" id="am-e" min="0"></div>
+    <div class="fgp s2"><label class="flbl">Promoteur *</label><input class="finp" id="am-p"></div>
+    <div class="fgp"><label class="flbl">Téléphone *</label><input type="tel" class="finp" id="am-t" placeholder="+237 6XX XXX XXX"></div>
+    <div class="fgp"><label class="flbl">Email</label><input type="email" class="finp" id="am-em"></div>
+    <div class="fgp s2"><label class="flbl">Adresse</label><input class="finp" id="am-a"></div>
+    <div class="fgp"><label class="flbl">Cotisation</label><select class="fsel2" id="am-c"><option value="A jour">À jour</option><option value="En retard">En retard</option><option value="Partiel">Partiel</option></select></div>
+    <div class="fgp"><label class="flbl">Année adhésion</label><input type="number" class="finp" id="am-y" value="2025"></div>
+    <div class="fgp s2"><label class="flbl">Notes</label><textarea class="fta" id="am-no"></textarea></div>
+  </div></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="cm('mod-am')">Annuler</button><button class="btn btn-primary" onclick="savM()">✓ Enregistrer</button></div>
+</div></div>
+
+<!-- MODAL ADD CONTACT -->
+<div class="modal-ov" id="mod-ac"><div class="modal">
+  <div class="mhd"><div class="mtitle">📞 Nouveau contact partenaire</div><button class="mclose" onclick="cm('mod-ac')">✕</button></div>
+  <div class="mbody"><div class="fg">
+    <div class="fgp s2"><label class="flbl">Organisation / Institution *</label><input class="finp" id="ac-o" placeholder="Délégation du Tourisme"></div>
+    <div class="fgp s2"><label class="flbl">Catégorie</label>
+      <select class="fsel2" id="ac-c">
+        <option>Administration &amp; Délégations</option><option>Fiscalité &amp; Impôts</option>
+        <option>Forces de l'ordre</option><option>Sécurité &amp; Secours</option>
+        <option>Partenaires &amp; Bienfaiteurs</option><option>Autre</option>
+      </select></div>
+    <div class="fgp s2"><label class="flbl">Nom du responsable</label><input class="finp" id="ac-r" placeholder="M. le Délégué MARTIN"></div>
+    <div class="fgp s2"><label class="flbl">Poste / Titre</label><input class="finp" id="ac-po" placeholder="Délégué Régional du Tourisme"></div>
+    <div class="fgp"><label class="flbl">Téléphone principal *</label><input type="tel" class="finp" id="ac-t" placeholder="+237 6XX XXX XXX"></div>
+    <div class="fgp"><label class="flbl">Téléphone 2 / Urgence</label><input type="tel" class="finp" id="ac-t2"></div>
+    <div class="fgp"><label class="flbl">Email</label><input type="email" class="finp" id="ac-e"></div>
+    <div class="fgp"><label class="flbl">Adresse</label><input class="finp" id="ac-a"></div>
+    <div class="fgp s2"><label class="flbl">Notes</label><textarea class="fta" id="ac-n"></textarea></div>
+  </div></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="cm('mod-ac')">Annuler</button><button class="btn btn-primary" onclick="savC()">✓ Enregistrer</button></div>
+</div></div>
+
+<!-- MODAL ADD DOC -->
+<div class="modal-ov" id="mod-ad"><div class="modal">
+  <div class="mhd"><div class="mtitle">📎 Ajouter un document</div><button class="mclose" onclick="cm('mod-ad')">✕</button></div>
+  <div class="mbody"><div class="fg one" style="gap:11px">
+    <div class="fgp"><label class="flbl">Nom du document *</label><input class="finp" id="d-n"></div>
+    <div class="fgp"><label class="flbl">Type</label><select class="fsel2" id="d-t"><option>Loi / Réglementation</option><option>Circulaire</option><option>Rapport de réunion</option><option>Guide pratique</option><option>Formulaire</option><option>Autre</option></select></div>
+    <div class="fgp"><label class="flbl">Lien URL</label><input type="url" class="finp" id="d-u" placeholder="https://…"></div>
+    <div class="fgp"><label class="flbl">Description</label><textarea class="fta" id="d-d"></textarea></div>
+  </div></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="cm('mod-ad')">Annuler</button><button class="btn btn-primary" onclick="savD()">✓ Enregistrer</button></div>
+</div></div>
+
+<!-- MODAL ADD RÉUNION -->
+<div class="modal-ov" id="mod-ar"><div class="modal">
+  <div class="mhd"><div class="mtitle">📅 Nouvelle réunion</div><button class="mclose" onclick="cm('mod-ar')">✕</button></div>
+  <div class="mbody"><div class="fg">
+    <div class="fgp s2"><label class="flbl">Titre *</label><input class="finp" id="r-ti"></div>
+    <div class="fgp"><label class="flbl">Date *</label><input type="date" class="finp" id="r-d"></div>
+    <div class="fgp"><label class="flbl">Heure</label><input type="time" class="finp" id="r-h" value="09:00"></div>
+    <div class="fgp s2"><label class="flbl">Lieu</label><input class="finp" id="r-l"></div>
+    <div class="fgp s2"><label class="flbl">Ordre du jour</label><textarea class="fta" id="r-o"></textarea></div>
+    <div class="fgp s2"><label class="flbl">Rapport / Compte rendu</label><textarea class="fta" id="r-r" placeholder="À compléter après la réunion…"></textarea></div>
+  </div></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="cm('mod-ar')">Annuler</button><button class="btn btn-primary" onclick="savR()">✓ Enregistrer</button></div>
+</div></div>
+
+<div class="toast" id="toast"><span id="t-ic">✅</span><span id="t-msg"></span></div>
+
+<script>
+/* ── DATA ── */
+const SIC={'Hôtel':'🏨','Restaurant':'🍽️','Auberge':'🛖','Tour-Opérateur':'✈️','Autre':'🏢'};
+const DIC={'Loi / Réglementation':'📜','Circulaire':'📋','Rapport de réunion':'📝','Guide pratique':'📗','Formulaire':'📄','Autre':'📁'};
+const CIC={'Administration & Délégations':'🏛️','Fiscalité & Impôts':'💼','Forces de l\'ordre':'👮','Sécurité & Secours':'🚒','Partenaires & Bienfaiteurs':'🤝','Autre':'📌'};
+const CCL={'Administration & Délégations':'b-bl','Fiscalité & Impôts':'b-or','Forces de l\'ordre':'b-vl','Sécurité & Secours':'b-rd','Partenaires & Bienfaiteurs':'b-gn','Autre':'b-gy'};
+
+let membres=[
+  {id:1,nom:'Grand Hôtel du Centre',secteur:'Hôtel',promoteur:'Martin ABENG',employes:45,tel:'+237 699 001 001',email:'contact@grandhotel.cm',adresse:'Centre-ville',cotis:'A jour',annee:2019,notes:'Membre fondateur'},
+  {id:2,nom:'Restaurant Le Rafiot',secteur:'Restaurant',promoteur:'Suzanne NKOA',employes:12,tel:'+237 677 002 002',email:'lerafiot@mail.cm',adresse:'Quartier Lac',cotis:'En retard',annee:2021,notes:''},
+  {id:3,nom:'Auberge de la Forêt',secteur:'Auberge',promoteur:'Pierre BONGO',employes:8,tel:'+237 655 003 003',email:'',adresse:'Route nationale',cotis:'A jour',annee:2022,notes:''},
+  {id:4,nom:'Hôtel Savane Palace',secteur:'Hôtel',promoteur:'Alice MBARGA',employes:67,tel:'+237 699 004 004',email:'savane@hotel.cm',adresse:'Avenue principale',cotis:'Partiel',annee:2020,notes:'Paiement partiel reçu en mars'},
+  {id:5,nom:'Croisières du Fleuve',secteur:'Tour-Opérateur',promoteur:'Roger NFOUDA',employes:5,tel:'+237 677 005 005',email:'croisieres@cm.net',adresse:'Port fluvial',cotis:'A jour',annee:2023,notes:''},
+  {id:6,nom:'Chez Maman Resto',secteur:'Restaurant',promoteur:'Cécile ONDOA',employes:6,tel:'+237 655 006 006',email:'',adresse:'Marché central',cotis:'En retard',annee:2022,notes:''},
+  {id:7,nom:'Hôtel Les Palmiers',secteur:'Hôtel',promoteur:'Jean-Paul ATEBA',employes:30,tel:'+237 699 007 007',email:'palmiers@mail.cm',adresse:'Boulevard du tourisme',cotis:'A jour',annee:2018,notes:'Très actif au bureau'},
+  {id:8,nom:'Safari Tours CM',secteur:'Tour-Opérateur',promoteur:'Brigitte EYENGA',employes:10,tel:'+237 677 008 008',email:'safari@tours.cm',adresse:'Zone aéroportuaire',cotis:'En retard',annee:2021,notes:''},
+];
+
+let contacts=[
+  {id:101,org:'Délégation Régionale du Tourisme',cat:'Administration & Délégations',resp:'M. le Délégué Régional',poste:'Délégué Régional du Tourisme',tel:'+237 699 100 001',tel2:'',notes:'Interlocuteur principal pour les agréments et classements'},
+  {id:102,org:"Délégation de l'Environnement",cat:'Administration & Délégations',resp:'Mme la Déléguée',poste:"Déléguée de l'Environnement",tel:'+237 699 100 002',tel2:'',notes:'Normes environnementales hôtelières'},
+  {id:103,org:'Délégation du Commerce',cat:'Administration & Délégations',resp:'M. le Délégué du Commerce',poste:'Délégué du Commerce',tel:'+237 677 100 003',tel2:'',notes:'Licences commerciales'},
+  {id:104,org:'Délégation des Arts & Culture',cat:'Administration & Délégations',resp:'M. le Délégué Culturel',poste:'Délégué Arts & Culture',tel:'+237 677 100 004',tel2:'',notes:'Activités culturelles en hôtellerie'},
+  {id:105,org:'Inspection du Travail',cat:'Administration & Délégations',resp:'Inspecteur Chef',poste:'Inspecteur du Travail',tel:'+237 655 100 005',tel2:'',notes:'Code du travail, contrôles employeurs'},
+  {id:106,org:'Délégation de la Santé Publique',cat:'Administration & Délégations',resp:'M. le Délégué Santé',poste:'Délégué Régional de la Santé',tel:'+237 699 100 006',tel2:'',notes:'Hygiène & normes sanitaires'},
+  {id:201,org:'Centre des Impôts (CDI)',cat:'Fiscalité & Impôts',resp:'M. le Chef de Centre',poste:'Chef Centre des Impôts',tel:'+237 699 200 001',tel2:'',notes:'Interlocuteur fiscal principal'},
+  {id:202,org:'SIM — Services Impôts Moyennes entreprises',cat:'Fiscalité & Impôts',resp:'Chef SIM',poste:'Responsable SIM',tel:'+237 677 200 002',tel2:'',notes:''},
+  {id:203,org:'Direction des Douanes',cat:'Fiscalité & Impôts',resp:'Receveur des Douanes',poste:'Receveur Principal',tel:'+237 655 200 003',tel2:'',notes:''},
+  {id:301,org:'Commissariat Central',cat:"Forces de l'ordre",resp:'Commissaire Principal',poste:'Commissaire de Police',tel:'+237 699 300 001',tel2:'17',notes:'Sécurité & ordre public'},
+  {id:302,org:'ST — Surveillance du Territoire',cat:"Forces de l'ordre",resp:'Chef ST',poste:'Responsable ST',tel:'+237 677 300 002',tel2:'',notes:'Contrôle des étrangers, registres hôteliers'},
+  {id:303,org:'Gendarmerie Nationale',cat:"Forces de l'ordre",resp:'Commandant de Brigade',poste:'Commandant',tel:'+237 655 300 003',tel2:'117',notes:''},
+  {id:304,org:'Police Municipale',cat:"Forces de l'ordre",resp:'Chef de Brigade',poste:'Chef Brigade Municipale',tel:'+237 699 300 004',tel2:'',notes:'Nuisances sonores, stationnement'},
+  {id:401,org:'Sapeurs-Pompiers',cat:'Sécurité & Secours',resp:'Commandant',poste:'Commandant des Pompiers',tel:'118',tel2:'+237 699 400 001',notes:'Sécurité incendie, normes ERP'},
+  {id:402,org:'SAMU / Urgences médicales',cat:'Sécurité & Secours',resp:'Médecin Chef',poste:'Responsable SAMU',tel:'15',tel2:'+237 677 400 002',notes:''},
+  {id:403,org:'Croix-Rouge — Section locale',cat:'Sécurité & Secours',resp:'Président de section',poste:'Président',tel:'+237 655 400 003',tel2:'',notes:'Formation premiers secours'},
+  {id:501,org:'Chambre de Commerce & Industrie',cat:'Partenaires & Bienfaiteurs',resp:'Président CCI',poste:'Président',tel:'+237 699 500 001',tel2:'',notes:'Partenaire institutionnel'},
+  {id:502,org:'Office du Tourisme Local',cat:'Partenaires & Bienfaiteurs',resp:'Directeur',poste:'Directeur Office Tourisme',tel:'+237 677 500 002',tel2:'',notes:'Promotion de la destination'},
+];
+
+let documents=[
+  {id:1,nom:'Loi de finances 2025 — Extrait tourisme & hôtellerie',type:'Loi / Réglementation',date:'15/01/2025',url:'',desc:'Articles 45 à 78 : fiscalité du secteur touristique'},
+  {id:2,nom:'Circulaire : Normes de classement hôtelier',type:'Circulaire',date:'03/03/2025',url:'',desc:'Mise à jour des critères de classement étoiles'},
+  {id:3,nom:'Guide pratique — Droits et obligations employeur',type:'Guide pratique',date:'20/02/2025',url:'',desc:'Résumé du code du travail applicable aux hôtels et restaurants'},
+  {id:4,nom:'Rapport réunion Bureau — Janvier 2025',type:'Rapport de réunion',date:'28/01/2025',url:'',desc:"Compte rendu de l'assemblée générale ordinaire"},
+];
+
+let reunions=[
+  {id:1,titre:'Assemblée Générale Ordinaire',date:'2025-06-15',heure:'09:00',lieu:'Siège du syndicat',odj:'1. Bilan annuel\n2. Cotisations\n3. Programme formations\n4. Divers',rapport:''},
+  {id:2,titre:'Réunion Bureau — Cotisations',date:'2025-05-10',heure:'10:00',lieu:'Hôtel Palace — Salle de conférence',odj:'Suivi des cotisations en retard',rapport:"Relance effectuée auprès de 8 membres. Délai accordé jusqu'à fin mai."},
+];
+
+let alertes=[
+  {id:1,type:'Contrôle',objet:'Contrôle fiscal prévu',message:'La direction des impôts annonce des contrôles dans le secteur hôtelier cette semaine. Assurez-vous que vos registres sont en ordre.',date:'12/04/2025'},
+];
+
+let curAT='Contrôle', curCat='Tous', uid=700;
+
+/* ── SIDEBAR ── */
+function toggleSB(){
+  document.getElementById('sb').classList.toggle('col');
+  document.getElementById('mn').classList.toggle('wide');
+}
+
+/* ── NAV ── */
+const PCONF={
+  dashboard:['Tableau de bord','Vue d\'ensemble du syndicat',''],
+  membres:['Registre des membres','Établissements membres','<button class="btn btn-primary" onclick="om(\'mod-am\')">➕ Nouveau membre</button>'],
+  contacts:['Contacts & Partenaires','Délégations, autorités et partenaires institutionnels','<button class="btn btn-primary" onclick="om(\'mod-ac\')">➕ Ajouter un contact</button>'],
+  documents:['Documents partagés','Lois, règlements, rapports','<button class="btn btn-primary" onclick="om(\'mod-ad\')">📎 Ajouter</button>'],
+  reunions:['Réunions & Rapports','Planification et comptes rendus','<button class="btn btn-primary" onclick="om(\'mod-ar\')">📅 Planifier</button>'],
+  alertes:['Alertes membres','Notifications rapides',''],
+};
+
+function gp(page,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el) el.classList.add('active');
+  const [t,s,a]=PCONF[page];
+  document.getElementById('ptitle').textContent=t;
+  document.getElementById('psub').textContent=s;
+  document.getElementById('pactions').innerHTML=a;
+  if(page==='dashboard') rdash();
+  if(page==='membres')   fm();
+  if(page==='contacts')  rcont();
+  if(page==='documents') rdocs();
+  if(page==='reunions')  rreu();
+  if(page==='alertes')   ral();
+}
+
+function om(id){document.getElementById(id).classList.add('open');}
+function cm(id){document.getElementById(id).classList.remove('open');}
+
+function toast(msg,ic='✅'){
+  document.getElementById('t-msg').textContent=msg;
+  document.getElementById('t-ic').textContent=ic;
+  const t=document.getElementById('toast');t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+/* ── DASHBOARD ── */
+function rdash(){
+  const tot=membres.length,aj=membres.filter(m=>m.cotis==='A jour').length,rt=membres.filter(m=>m.cotis==='En retard').length;
+  document.getElementById('st-tot').textContent=tot;
+  document.getElementById('st-aj').textContent=aj;
+  document.getElementById('st-rt').textContent=rt;
+  document.getElementById('st-pct').textContent=tot?Math.round(aj/tot*100)+'% du registre':'—';
+  document.getElementById('bdg-r').textContent=rt;
+  const now=new Date(),fut=reunions.filter(r=>new Date(r.date)>=now).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(fut.length){
+    document.getElementById('st-rd').textContent=new Date(fut[0].date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
+    document.getElementById('st-rt2').textContent=fut[0].titre;
+  }
+  const rts=membres.filter(m=>m.cotis==='En retard');
+  document.getElementById('dash-rt').innerHTML=rts.length===0
+    ?'<div style="color:var(--texte-sec);font-size:13px;text-align:center;padding:14px">Aucun retard 🎉</div>'
+    :rts.map(m=>`<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div class="mi">${ini(m.nom)}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.nom}</div><div style="font-size:11px;color:var(--texte-sec)">${m.promoteur}</div></div>
+      <button class="btn btn-wa btn-sm" onclick="wa('${m.tel}','${m.nom}','c')">📲</button>
+    </div>`).join('');
+  const sects=[...new Set(membres.map(m=>m.secteur))];
+  document.getElementById('sect-stats').innerHTML=sects.map(s=>{
+    const ts=membres.filter(m=>m.secteur===s).length,as=membres.filter(m=>m.secteur===s&&m.cotis==='A jour').length;
+    const p=ts?Math.round(as/ts*100):0;
+    return `<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--texte-sec);margin-bottom:3px"><span>${SIC[s]||'🏢'} ${s}</span><span style="font-family:'DM Mono',monospace">${as}/${ts} — <strong style="color:var(--blanc)">${p}%</strong></span></div><div class="cbar"><div class="cfill" style="width:${p}%"></div></div></div>`;
+  }).join('');
+}
+
+/* ── MEMBRES ── */
+function ini(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+function bc(c){if(c==='A jour')return'<span class="badge b-gn">✓ À jour</span>';if(c==='En retard')return'<span class="badge b-rd">✗ En retard</span>';return'<span class="badge b-og">~ Partiel</span>';}
+
+function fm(){
+  const q=(document.getElementById('sm').value||'').toLowerCase();
+  const fs=document.getElementById('fsec').value,fc=document.getElementById('fcot').value;
+  const f=membres.filter(m=>(!q||m.nom.toLowerCase().includes(q)||m.promoteur.toLowerCase().includes(q))&&(!fs||m.secteur===fs)&&(!fc||m.cotis===fc));
+  document.getElementById('mtbody').innerHTML=f.map(m=>`
+    <tr onclick="ofiche(${m.id})">
+      <td><div style="display:flex;align-items:center;gap:9px"><div class="mi">${ini(m.nom)}</div><div><div style="font-weight:600">${m.nom}</div><div style="font-size:11px;color:var(--texte-sec)">${m.adresse}</div></div></div></td>
+      <td><span class="badge b-or">${SIC[m.secteur]||''} ${m.secteur}</span></td>
+      <td style="color:var(--texte-sec)">${m.promoteur}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--texte-sec)">${m.employes||'—'}</td>
+      <td><a href="tel:${m.tel}" style="color:var(--bleu);text-decoration:none;font-family:'DM Mono',monospace;font-size:12px" onclick="event.stopPropagation()">${m.tel}</a></td>
+      <td>${bc(m.cotis)}</td>
+      <td onclick="event.stopPropagation()"><div style="display:flex;gap:5px">
+        <a href="tel:${m.tel}" class="btn btn-call btn-sm">📞</a>
+        <button class="btn btn-wa btn-sm" onclick="wa('${m.tel}','${m.nom}','')">💬</button>
+        ${m.cotis!=='A jour'?`<button class="btn btn-danger btn-sm" onclick="wa('${m.tel}','${m.nom}','c')">⚠️</button>`:''}
+      </div></td>
+    </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:26px;color:var(--texte-sec)">Aucun résultat</td></tr>';
+}
+
+function ofiche(id){
+  const m=membres.find(x=>x.id===id);if(!m)return;
+  document.getElementById('mod-m-body').innerHTML=`
+    <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--gris-bord)">
+      <div style="width:56px;height:56px;border-radius:11px;background:linear-gradient(135deg,var(--or),var(--or-dark));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--noir);font-family:'Playfair Display',serif;flex-shrink:0">${ini(m.nom)}</div>
+      <div><div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--blanc);margin-bottom:3px">${m.nom}</div>
+      <div style="font-size:13px;color:var(--texte-sec);margin-bottom:7px">👤 ${m.promoteur}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge b-or">${SIC[m.secteur]||''} ${m.secteur}</span>${bc(m.cotis)}<span class="badge b-bl">Depuis ${m.annee}</span></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px">
+      ${di('Téléphone','<span style="color:var(--bleu)">'+m.tel+'</span>')}
+      ${di('Email',m.email||'—')}${di('Adresse',m.adresse||'—')}${di('Employés',m.employes||'—')}
+    </div>
+    ${m.notes?di('Notes',m.notes):''}
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:15px">
+      <a href="tel:${m.tel}" class="btn btn-call">📞 Appeler</a>
+      <button class="btn btn-wa" onclick="wa('${m.tel}','${m.nom}','')">💬 WhatsApp</button>
+      ${m.cotis!=='A jour'?`<button class="btn btn-danger" onclick="wa('${m.tel}','${m.nom}','c');cm('mod-m')">⚠️ Notifier retard</button>`:''}
+      <button class="btn btn-ghost" onclick="togCot(${m.id})">🔄 Changer statut</button>
+    </div>`;
+  om('mod-m');
+}
+
+function di(l,v){return `<div style="background:var(--gris-moyen);border-radius:8px;padding:8px 11px"><div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--texte-ter);margin-bottom:2px">${l}</div><div style="font-size:13px;color:var(--blanc)">${v}</div></div>`;}
+
+function togCot(id){
+  const m=membres.find(x=>x.id===id);if(!m)return;
+  const e=['A jour','En retard','Partiel'];m.cotis=e[(e.indexOf(m.cotis)+1)%3];
+  cm('mod-m');fm();rdash();toast(`${m.nom} : ${m.cotis}`,'🔄');act(`Cotisation : ${m.nom} → ${m.cotis}`,'var(--or)');
+}
+
+function savM(){
+  const n=document.getElementById('am-n').value.trim(),p=document.getElementById('am-p').value.trim(),t=document.getElementById('am-t').value.trim();
+  if(!n||!p||!t){toast('Champs * obligatoires','❌');return;}
+  membres.push({id:++uid,nom:n,secteur:document.getElementById('am-s').value,promoteur:p,employes:parseInt(document.getElementById('am-e').value)||0,tel:t,email:document.getElementById('am-em').value.trim(),adresse:document.getElementById('am-a').value.trim(),cotis:document.getElementById('am-c').value,annee:parseInt(document.getElementById('am-y').value)||2025,notes:document.getElementById('am-no').value.trim()});
+  cm('mod-am');['am-n','am-p','am-t','am-em','am-a','am-no'].forEach(i=>document.getElementById(i).value='');
+  fm();rdash();toast(`${n} ajouté ✓`);act(`Nouveau membre : ${n}`,'var(--vert)');
+}
+
+/* ── WHATSAPP ── */
+function wa(tel,nom,type){
+  const c=tel.replace(/\s/g,'');
+  let msg='';
+  if(type==='c') msg=encodeURIComponent(`Bonjour,\n\nLe Syndicat Patronal des Hôtels & Industries du Tourisme (SPHIT) vous contacte.\n\nNous vous informons que la cotisation de l'établissement *${nom}* n'est pas à jour pour l'exercice en cours.\n\nMerci de régulariser votre situation dans les meilleurs délais.\n\nCordialement — Secrétaire Général SPHIT`);
+  window.open(`https://wa.me/${c}${msg?'?text='+msg:''}`,'_blank');
+}
+
+function notifAll(){
+  const r=membres.filter(m=>m.cotis==='En retard');
+  if(!r.length){toast('Aucun retard !','🎉');return;}
+  const msg=encodeURIComponent(`Bonjour,\n\nSPHIT — Rappel de cotisation syndicale.\n\nVotre cotisation pour l'exercice en cours n'est pas encore réglée. Merci de régulariser rapidement.\n\nLe Secrétaire Général — SPHIT`);
+  window.open(`https://wa.me/${r[0].tel.replace(/\s/g,'')}?text=${msg}`,'_blank');
+  toast(`Message prêt — ${r.length} membres en retard`,'📲');act(`Relance cotisation — ${r.length} membres`,'var(--rouge)');
+}
+
+/* ── CONTACTS ── */
+function rcont(){
+  const cats=['Tous',...Object.keys(CIC)];
+  document.getElementById('cat-pills').innerHTML=cats.map(c=>`<div class="cat-pill ${c===curCat?'on':''}" onclick="fcat('${c}')">${CIC[c]||'🔍'} ${c}</div>`).join('');
+  const f=curCat==='Tous'?contacts:contacts.filter(c=>c.cat===curCat);
+  document.getElementById('cgrid').innerHTML=f.map(c=>`
+    <div class="cc">
+      <div><span class="badge ${CCL[c.cat]||'b-gy'}">${CIC[c.cat]||''} ${c.cat}</span>
+      <div class="cc-org">${c.org}</div>
+      ${c.resp?`<div class="cc-resp">${c.resp}${c.poste?` · <span style="font-size:11px;color:var(--texte-ter)">${c.poste}</span>`:''}</div>`:''}
+      </div>
+      <div><div class="cc-tel">${c.tel}${c.tel2?` &nbsp;·&nbsp; <strong style="color:#E74C3C">${c.tel2}</strong>`:''}</div>
+      ${c.notes?`<div style="font-size:11px;color:var(--texte-ter);margin-top:3px;line-height:1.3">${c.notes}</div>`:''}</div>
+      <div style="display:flex;gap:6px">
+        <a href="tel:${c.tel}" class="btn btn-call btn-sm">📞 Appeler</a>
+        <button class="btn btn-wa btn-sm" onclick="wa('${c.tel}','${c.org}','')">💬 WA</button>
+      </div>
+    </div>`).join('')||'<div style="grid-column:1/-1;text-align:center;padding:36px;color:var(--texte-sec)">Aucun contact</div>';
+}
+
+function fcat(cat){curCat=cat;rcont();}
+
+function savC(){
+  const o=document.getElementById('ac-o').value.trim(),t=document.getElementById('ac-t').value.trim();
+  if(!o||!t){toast('Organisation et téléphone requis','❌');return;}
+  contacts.push({id:++uid,org:o,cat:document.getElementById('ac-c').value,resp:document.getElementById('ac-r').value.trim(),poste:document.getElementById('ac-po').value.trim(),tel:t,tel2:document.getElementById('ac-t2').value.trim(),notes:document.getElementById('ac-n').value.trim()});
+  cm('mod-ac');['ac-o','ac-r','ac-po','ac-t','ac-t2','ac-e','ac-a','ac-n'].forEach(i=>document.getElementById(i).value='');
+  rcont();toast(`${o} ajouté`);act(`Contact ajouté : ${o}`,'var(--bleu)');
+}
+
+/* ── DOCUMENTS ── */
+function rdocs(){
+  document.getElementById('dgrid').innerHTML=documents.map(d=>`
+    <div class="dc" onclick="${d.url?`window.open('${d.url}','_blank')`:'toast(\'Aucun lien associé\',\'📂\')'}">
+      <div style="font-size:24px">${DIC[d.type]||'📁'}</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--texte-ter)">${d.type}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--blanc);line-height:1.3">${d.nom}</div>
+      ${d.desc?`<div style="font-size:12px;color:var(--texte-sec);line-height:1.4">${d.desc}</div>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto">
+        <div style="font-size:11px;color:var(--texte-sec);font-family:'DM Mono',monospace">${d.date}</div>
+        ${d.url?'<span style="font-size:11px;color:var(--or)">↗ Ouvrir</span>':''}
+      </div>
+    </div>`).join('');
+}
+
+function savD(){
+  const n=document.getElementById('d-n').value.trim();if(!n){toast('Nom requis','❌');return;}
+  documents.push({id:++uid,nom:n,type:document.getElementById('d-t').value,date:new Date().toLocaleDateString('fr-FR'),url:document.getElementById('d-u').value.trim(),desc:document.getElementById('d-d').value.trim()});
+  cm('mod-ad');['d-n','d-u','d-d'].forEach(i=>document.getElementById(i).value='');
+  rdocs();toast('Document ajouté');act(`Document : ${n}`,'var(--bleu)');
+}
+
+/* ── RÉUNIONS ── */
+const MO=['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+function rreu(){
+  const now=new Date();
+  document.getElementById('rlist').innerHTML=[...reunions].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(r=>{
+    const d=new Date(r.date),past=d<now;
+    return `<div class="reu-card" onclick="sreunion(${r.id})">
+      <div class="reu-date" style="${past?'filter:grayscale(.4)':''}"><div class="rj">${d.getDate()}</div><div class="rm">${MO[d.getMonth()]}</div></div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--blanc);margin-bottom:3px">${r.titre}</div><div style="font-size:12px;color:var(--texte-sec)">📍 ${r.lieu} &nbsp;·&nbsp; ⏰ ${r.heure}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span class="badge ${past?'b-bl':'b-gn'}">${past?'Passée':'À venir'}</span>
+        ${r.rapport?'<span style="font-size:11px;color:var(--texte-sec)">📝 Rapport</span>':''}
+      </div>
+    </div>`;
+  }).join('')||'<div style="text-align:center;padding:36px;color:var(--texte-sec)">Aucune réunion</div>';
+}
+
+function sreunion(id){
+  const r=reunions.find(x=>x.id===id);if(!r)return;
+  alert(`📅 ${r.titre}\nDate : ${new Date(r.date).toLocaleDateString('fr-FR')} à ${r.heure}\nLieu : ${r.lieu}\n\n📋 ORDRE DU JOUR :\n${r.odj||'—'}\n\n${r.rapport?'📝 RAPPORT :\n'+r.rapport:'(Pas encore de rapport)'}`);
+}
+
+function savR(){
+  const ti=document.getElementById('r-ti').value.trim(),d=document.getElementById('r-d').value;
+  if(!ti||!d){toast('Titre et date obligatoires','❌');return;}
+  reunions.push({id:++uid,titre:ti,date:d,heure:document.getElementById('r-h').value,lieu:document.getElementById('r-l').value.trim(),odj:document.getElementById('r-o').value.trim(),rapport:document.getElementById('r-r').value.trim()});
+  cm('mod-ar');['r-ti','r-d','r-l','r-o','r-r'].forEach(i=>document.getElementById(i).value='');document.getElementById('r-h').value='09:00';
+  rreu();rdash();toast('Réunion enregistrée');act(`Réunion : ${ti}`,'var(--or)');
+}
+
+/* ── ALERTES ── */
+function selAT(btn,t){document.querySelectorAll('.at-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');curAT=t;}
+function envAlerte(){
+  const o=document.getElementById('al-o').value.trim(),m=document.getElementById('al-m').value.trim();
+  if(!o||!m){toast('Remplissez objet et message','❌');return;}
+  const tx=`🔔 *[SPHIT — ${curAT}]*\n*${o}*\n\n${m}\n\n_Syndicat Patronal Hôtels & Industrie Touristique_`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(tx)}`,'_blank');
+  alertes.unshift({id:++uid,type:curAT,objet:o,message:m,date:new Date().toLocaleDateString('fr-FR')});
+  document.getElementById('al-o').value='';document.getElementById('al-m').value='';
+  ral();toast('Alerte préparée','📲');act(`Alerte : ${o}`,'var(--rouge)');
+}
+const ATCL={'Contrôle':'b-rd','Réglementation':'b-bl','Information':'b-gn','Urgent':'b-rd'};
+function ral(){
+  document.getElementById('al-hist').innerHTML=alertes.map(a=>`
+    <div style="background:var(--gris-panel);border:1px solid var(--gris-bord);border-radius:10px;padding:13px 17px">
+      <div style="display:flex;gap:7px;align-items:center;margin-bottom:5px"><span class="badge ${ATCL[a.type]||'b-or'}">${a.type}</span><span style="font-size:11px;color:var(--texte-ter);font-family:'DM Mono',monospace">${a.date}</span></div>
+      <div style="font-size:13px;font-weight:600;color:var(--blanc);margin-bottom:3px">${a.objet}</div>
+      <div style="font-size:12px;color:var(--texte-sec);line-height:1.5">${a.message}</div>
+    </div>`).join('')||'<div style="text-align:center;padding:26px;color:var(--texte-sec)">Aucune alerte</div>';
+}
+
+/* ── ACTIVITÉ ── */
+let acts=[];
+function act(txt,col){
+  const t=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  acts.unshift({txt,col,t});if(acts.length>7)acts.pop();
+  document.getElementById('act-list').innerHTML=[...acts,{txt:'Application démarrée',col:'var(--or)',t:'—'}].map(a=>`
+    <div class="act-item"><div class="act-dot" style="background:${a.col}"></div><div class="act-txt">${a.txt}</div><div class="act-t">${a.t}</div></div>`).join('');
+}
+
+rdash();
+</script>
+</body>
+</html>
