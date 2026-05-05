@@ -435,19 +435,21 @@ window.doLogout=async function(){
   await signOut(auth);
 };
 
-import { onAuthStateChanged } from "firebase/auth";
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    // utilisateur connecté
-    setData(myLocalData);
-    setLoading(false);
-  } else {
-    // pas connecté
-    setLoading(false);
+onAuthStateChanged(auth,user=>{
+  if(user){
+    curUser=user;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app-shell').style.display='flex';
+    const initiales=(user.email||'?').slice(0,2).toUpperCase();
+    document.getElementById('user-av').textContent=initiales;
+    document.getElementById('user-av').title=user.email+' (cliquer pour se déconnecter)';
+    initData();
+  }else{
+    curUser=null;
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('app-shell').style.display='none';
   }
 });
-
 /* ── INIT DONNÉES ── */
 async function initData(){
   syncDot('loading');
