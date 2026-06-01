@@ -338,6 +338,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
     <div class="fgp"><label class="flbl">Nom etablissement *</label><input class="finp" id="em-nom"></div>
     <div class="fgp"><label class="flbl">Promoteur</label><input class="finp" id="em-promoteur"></div>
     <div class="fgp"><label class="flbl">Telephone</label><input type="tel" class="finp" id="em-tel"></div>
+    <div class="fgp"><label class="flbl">Numero de carte membre</label><input class="finp" id="em-carte" placeholder="ex : SPIHT-OC-001"></div>
+    <div class="fgp"><label class="flbl">Statut carte</label>
+      <select class="fsel2" id="em-carte-statut">
+        <option value="non">Pas de carte</option>
+        <option value="oui">Carte delivree</option>
+        <option value="attente">En attente</option>
+      </select>
+    </div>
     <input type="hidden" id="em-fid">
   </div></div>
   <div class="sheet-footer"><button class="btn btn-ghost" id="cancel-edit-m">Annuler</button><button class="btn btn-primary" id="save-edit-m" style="flex:1;justify-content:center">Enregistrer</button></div>
@@ -349,11 +357,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
   <div class="sheet-header"><div class="sheet-title">Nouveau membre</div><button class="sheet-close" id="close-sh-am">✕</button></div>
   <div class="sheet-body"><div class="fg">
     <div class="fgp"><label class="flbl">Nom etablissement *</label><input class="finp" id="am-n" placeholder="Hotel de la Paix"></div>
-    <div class="fgp"><label class="flbl">Promoteur</label><input class="finp" id="am-p"></div>
+    <div class="fgp"><label class="flbl">Promoteur / Responsable</label><input class="finp" id="am-p"></div>
     <div class="fgp"><label class="flbl">Telephone</label><input type="tel" class="finp" id="am-t" placeholder="+237 6XX XXX XXX"></div>
+    <div class="fgp"><label class="flbl">Numero de carte membre</label><input class="finp" id="am-carte" placeholder="ex : SPIHT-OC-001"></div>
+    <div class="fgp"><label class="flbl">Statut carte membre</label>
+      <select class="fsel2" id="am-carte-statut">
+        <option value="non">Pas de carte</option>
+        <option value="oui">Carte delivree</option>
+        <option value="attente">En attente</option>
+      </select>
+    </div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ts);margin-top:4px;margin-bottom:2px">Cotisations anterieures</div>
     <div class="fg2">
-      <div class="fgp"><label class="flbl">Attendu (FCFA)</label><input type="number" class="finp" id="am-att" value="60000"></div>
-      <div class="fgp"><label class="flbl">Verse (FCFA)</label><input type="number" class="finp" id="am-ver" value="0"></div>
+      <div class="fgp"><label class="flbl">2024 — Verse</label><input type="number" class="finp" id="am-v24" value="0" placeholder="0"></div>
+      <div class="fgp"><label class="flbl">2024 — Attendu</label><input type="number" class="finp" id="am-a24" value="60000"></div>
+    </div>
+    <div class="fg2">
+      <div class="fgp"><label class="flbl">2025 — Verse</label><input type="number" class="finp" id="am-v25" value="0" placeholder="0"></div>
+      <div class="fgp"><label class="flbl">2025 — Attendu</label><input type="number" class="finp" id="am-a25" value="60000"></div>
+    </div>
+    <div class="fg2">
+      <div class="fgp"><label class="flbl">2026 — Verse</label><input type="number" class="finp" id="am-v26" value="0" placeholder="0"></div>
+      <div class="fgp"><label class="flbl">2026 — Attendu</label><input type="number" class="finp" id="am-a26" value="60000"></div>
     </div>
     <div class="fgp"><label class="flbl">Notes</label><textarea class="fta" id="am-no" rows="2"></textarea></div>
   </div></div>
@@ -703,17 +728,30 @@ function ofiche(fid) {
   var m=membres.find(function(x){return x.fid===fid;});if(!m)return;
   var st=cotisStatus(m);
 
-  // Chercher dans COTIS_DATA — correspondance par nom (flexible)
-  var nomM = (m.nom||"").toUpperCase().trim();
+  // Chercher dans COTIS_DATA — correspondance flexible
+  var nomM = (m.nom||"").toUpperCase().replace(/[\s\-\']/g," ").trim();
   var cleCotis = null;
+  // 1. Exacte
   Object.keys(COTIS_DATA).forEach(function(k){
-    if (k.toUpperCase().trim() === nomM) cleCotis = k;
+    if (k.toUpperCase().replace(/[\s\-\']/g," ").trim() === nomM) cleCotis = k;
   });
-  // Recherche partielle si pas trouvé exactement
+  // 2. Partielle
   if (!cleCotis) {
     Object.keys(COTIS_DATA).forEach(function(k){
-      if (!cleCotis && (nomM.includes(k.toUpperCase().trim()) || k.toUpperCase().trim().includes(nomM))) cleCotis = k;
+      var kn = k.toUpperCase().replace(/[\s\-\']/g," ").trim();
+      if (!cleCotis && (nomM.includes(kn) || kn.includes(nomM))) cleCotis = k;
     });
+  }
+  // 3. Mots communs (au moins 2 mots en commun)
+  if (!cleCotis) {
+    var mots = nomM.split(" ").filter(function(w){return w.length>2;});
+    var bestScore = 0, bestKey = null;
+    Object.keys(COTIS_DATA).forEach(function(k){
+      var kn = k.toUpperCase().replace(/[\s\-\']/g," ").trim();
+      var score = mots.filter(function(w){return kn.includes(w);}).length;
+      if (score > bestScore) { bestScore=score; bestKey=k; }
+    });
+    if (bestScore >= 2) cleCotis = bestKey;
   }
   var dataCotis = cleCotis ? COTIS_DATA[cleCotis] : null;
 
@@ -769,6 +807,9 @@ function ofiche(fid) {
   html+='<div class="di-row">';
   html+='<div class="di"><div class="di-l">Telephone</div><div class="di-v" style="color:var(--bleu)">'+(m.tel||"—")+'</div></div>';
   html+='<div class="di"><div class="di-l">Reference</div><div class="di-v">'+m.fid+'</div></div>';
+  var carteStatutLabel = m.carteStatut==="oui"?'<span style="color:#2ECC71;font-weight:700">✅ Delivree</span>':m.carteStatut==="attente"?'<span style="color:#F39C12;font-weight:700">⏳ En attente</span>':'<span style="color:#E74C3C">❌ Pas de carte</span>';
+  html+='<div class="di"><div class="di-l">Carte membre</div><div class="di-v">'+(m.carte||"—")+'</div></div>';
+  html+='<div class="di"><div class="di-l">Statut carte</div><div class="di-v">'+carteStatutLabel+'</div></div>';
   if(m.notes) html+='<div class="di full"><div class="di-l">Notes</div><div class="di-v">'+m.notes+'</div></div>';
   html+='</div>';
 
@@ -873,6 +914,8 @@ function openEditMembre(fid) {
   document.getElementById("em-nom").value=m.nom||"";
   document.getElementById("em-promoteur").value=m.promoteur||"";
   document.getElementById("em-tel").value=m.tel||"";
+  document.getElementById("em-carte").value=m.carte||"";
+  document.getElementById("em-carte-statut").value=m.carteStatut||"non";
   cs("sh-m"); os("sh-edit-m");
 }
 
@@ -881,18 +924,60 @@ document.getElementById("save-edit-m").addEventListener("click",function(){
   var nom=document.getElementById("em-nom").value.trim();
   if(!nom){showToast("Nom requis");return;}
   syncDot("loading");
-  updateDoc(doc(db,"membres",fid),{nom:nom,promoteur:document.getElementById("em-promoteur").value.trim(),tel:document.getElementById("em-tel").value.trim(),updatedAt:serverTimestamp(),updatedBy:curUser?curUser.email:"bureau"})
-    .then(function(){cs("sh-edit-m");showToast("Membre mis a jour");logAct("Membre modifie : "+nom,"or");})
+  updateDoc(doc(db,"membres",fid),{
+    nom:nom,
+    promoteur:document.getElementById("em-promoteur").value.trim(),
+    tel:document.getElementById("em-tel").value.trim(),
+    carte:document.getElementById("em-carte").value.trim(),
+    carteStatut:document.getElementById("em-carte-statut").value,
+    updatedAt:serverTimestamp(),
+    updatedBy:curUser?curUser.email:"bureau"
+  }).then(function(){cs("sh-edit-m");showToast("Membre mis a jour");logAct("Membre modifie : "+nom,"or");})
     .catch(function(e){showToast("Erreur : "+e.message);});
 });
 
 document.getElementById("save-am").addEventListener("click",function(){
   var n=document.getElementById("am-n").value.trim();
   if(!n){showToast("Nom requis");return;}
+  var v24=parseInt(document.getElementById("am-v24").value)||0;
+  var a24=parseInt(document.getElementById("am-a24").value)||60000;
+  var v25=parseInt(document.getElementById("am-v25").value)||0;
+  var a25=parseInt(document.getElementById("am-a25").value)||60000;
+  var v26=parseInt(document.getElementById("am-v26").value)||0;
+  var a26=parseInt(document.getElementById("am-a26").value)||60000;
+  var carte=document.getElementById("am-carte").value.trim();
+  var carteStatut=document.getElementById("am-carte-statut").value;
+  // Verse actuel = somme des années
+  var verseTotal=v24+v25+v26;
+  var attenduTotal=a26; // attendu courant = 2026
   syncDot("loading");
-  addDoc(collection(db,"membres"),{nom:n,promoteur:document.getElementById("am-p").value.trim(),tel:document.getElementById("am-t").value.trim(),attendu:parseInt(document.getElementById("am-att").value)||60000,verse:parseInt(document.getElementById("am-ver").value)||0,notes:document.getElementById("am-no").value.trim(),createdAt:serverTimestamp(),createdBy:curUser?curUser.email:"bureau"})
-    .then(function(){cs("sh-am");["am-n","am-p","am-t","am-no"].forEach(function(id){document.getElementById(id).value="";});document.getElementById("am-att").value="60000";document.getElementById("am-ver").value="0";showToast(n+" ajoute");logAct("Nouveau membre : "+n,"vert");})
-    .catch(function(e){showToast("Erreur : "+e.message);});
+  addDoc(collection(db,"membres"),{
+    nom:n,
+    promoteur:document.getElementById("am-p").value.trim(),
+    tel:document.getElementById("am-t").value.trim(),
+    attendu:attenduTotal,
+    verse:v26,
+    carte:carte,
+    carteStatut:carteStatut,
+    notes:document.getElementById("am-no").value.trim(),
+    createdAt:serverTimestamp(),
+    createdBy:curUser?curUser.email:"bureau"
+  }).then(function(){
+    // Ajouter aussi dans COTIS_DATA local pour le module finances
+    COTIS_DATA[n] = {
+      2024:{verse:v24,attendu:a24},
+      2025:{verse:v25,attendu:a25},
+      2026:{verse:v26,attendu:a26}
+    };
+    cs("sh-am");
+    ["am-n","am-p","am-t","am-carte","am-no"].forEach(function(id){document.getElementById(id).value="";});
+    ["am-v24","am-v25","am-v26"].forEach(function(id){document.getElementById(id).value="0";});
+    ["am-a24","am-a25","am-a26"].forEach(function(id){document.getElementById(id).value="60000";});
+    document.getElementById("am-carte-statut").value="non";
+    showToast(n+" ajoute avec historique");
+    logAct("Nouveau membre : "+n+" (carte: "+carteStatut+")","vert");
+    if(curPage==="finances") renderFinances();
+  }).catch(function(e){showToast("Erreur : "+e.message);});
 });
 
 document.getElementById("sm").addEventListener("input",fm);
