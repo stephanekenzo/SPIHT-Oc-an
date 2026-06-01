@@ -701,135 +701,159 @@ function fm() {
 
 function ofiche(fid) {
   var m=membres.find(function(x){return x.fid===fid;});if(!m)return;
-  var solde=(m.attendu||60000)-(m.verse||0);
-  var pct=(m.attendu||60000)?Math.round((m.verse||0)/(m.attendu||60000)*100):0;
   var st=cotisStatus(m);
 
-  // Résumé cotisations par année depuis COTIS_DATA
-  var nomCotis = m.nom;
-  var dataCotis = COTIS_DATA[nomCotis] || null;
-  var anneesCotisHtml = "";
+  // Chercher dans COTIS_DATA — correspondance par nom (flexible)
+  var nomM = (m.nom||"").toUpperCase().trim();
+  var cleCotis = null;
+  Object.keys(COTIS_DATA).forEach(function(k){
+    if (k.toUpperCase().trim() === nomM) cleCotis = k;
+  });
+  // Recherche partielle si pas trouvé exactement
+  if (!cleCotis) {
+    Object.keys(COTIS_DATA).forEach(function(k){
+      if (!cleCotis && (nomM.includes(k.toUpperCase().trim()) || k.toUpperCase().trim().includes(nomM))) cleCotis = k;
+    });
+  }
+  var dataCotis = cleCotis ? COTIS_DATA[cleCotis] : null;
+
+  // Calcul totaux depuis COTIS_DATA si disponible, sinon depuis Firestore
   var totalVerseTous = 0, totalDuTous = 0;
+  var anneesCotisHtml = "";
+
   if (dataCotis) {
     ANNEES.forEach(function(a){
       var d = dataCotis[parseInt(a)] || {verse:0,attendu:60000};
       var v=d.verse||0, at=d.attendu||60000, s=at-v;
-      totalVerseTous += v; totalDuTous += s;
+      totalVerseTous += v; totalDuTous += Math.max(0,s);
       var col = v>=at?"#2ECC71":v>0?"#F39C12":"#E74C3C";
-      var stat = v>=at?"A jour":v>0?"Partiel":"Rien verse";
-      anneesCotisHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)">';
-      anneesCotisHtml += '<span style="font-size:12px;font-weight:700;color:var(--or)">'+a+'</span>';
-      anneesCotisHtml += '<span style="font-size:11px;color:var(--ts)">Attendu : '+fmt(at)+' F</span>';
-      anneesCotisHtml += '<span style="font-size:11px;color:'+col+'">Verse : '+fmt(v)+' F</span>';
-      anneesCotisHtml += '<span style="font-size:11px;font-weight:700;color:'+col+'">'+stat+'</span>';
+      var stat = v>=at?"✅ A jour":v>0?"⚠️ Partiel":"❌ Rien verse";
+      anneesCotisHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06);flex-wrap:wrap;gap:4px">';
+      anneesCotisHtml += '<span style="font-size:13px;font-weight:700;color:var(--or);min-width:40px">'+a+'</span>';
+      anneesCotisHtml += '<div style="flex:1;min-width:0;font-size:11px;color:var(--ts)">Attendu : '+Number(at).toLocaleString("fr-FR")+' F &nbsp;|&nbsp; Verse : <span style="color:'+col+';font-weight:700">'+Number(v).toLocaleString("fr-FR")+' F</span></div>';
+      anneesCotisHtml += '<span style="font-size:10px;font-weight:700;color:'+col+'">'+stat+'</span>';
       anneesCotisHtml += '</div>';
     });
+  } else {
+    // Fallback données Firestore
+    var sv = m.verse||0, sa = m.attendu||60000;
+    totalVerseTous = sv; totalDuTous = Math.max(0, sa-sv);
+    anneesCotisHtml = '<div style="padding:8px 10px;font-size:12px;color:var(--ts)">Verse : '+Number(sv).toLocaleString("fr-FR")+' FCFA &nbsp;|&nbsp; Reste : '+Number(sa-sv).toLocaleString("fr-FR")+' FCFA</div>';
   }
 
-  var html='<div style="display:flex;gap:13px;align-items:center;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gb)">';
+  var html='';
+  // En-tête membre
+  html+='<div style="display:flex;gap:13px;align-items:center;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gb)">';
   html+='<div class="m-init" style="width:52px;height:52px;font-size:16px;border-radius:12px">'+ini(m.nom)+'</div>';
-  html+='<div style="flex:1;min-width:0"><div style="font-family:Playfair Display,serif;font-size:16px;font-weight:700;color:var(--blanc);margin-bottom:3px">'+m.nom+'</div>';
-  html+='<div style="font-size:12px;color:var(--ts);margin-bottom:6px">'+(m.promoteur||"—")+'</div>'+cotisLabel(m)+'</div></div>';
+  html+='<div style="flex:1;min-width:0">';
+  html+='<div style="font-family:Playfair Display,serif;font-size:16px;font-weight:700;color:var(--blanc);margin-bottom:3px">'+m.nom+'</div>';
+  html+='<div style="font-size:12px;color:var(--ts);margin-bottom:6px">'+(m.promoteur||"—")+'</div>';
+  html+=cotisLabel(m);
+  html+='</div></div>';
 
-  // Résumé annuel cotisations
-  if (dataCotis) {
-    html+='<div style="background:var(--gm);border-radius:10px;padding:12px;margin-bottom:12px">';
-    html+='<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ts);margin-bottom:8px">Historique des cotisations</div>';
-    html+=anneesCotisHtml;
-    html+='<div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)">';
-    html+='<span style="font-size:11px;font-weight:700;color:var(--blanc)">Total verse</span>';
-    html+='<span style="font-family:DM Mono,monospace;font-size:13px;font-weight:700;color:#2ECC71">'+fmt(totalVerseTous)+' FCFA</span>';
-    html+='</div>';
-    html+='<div style="display:flex;justify-content:space-between;margin-top:4px">';
-    html+='<span style="font-size:11px;font-weight:700;color:var(--blanc)">Solde global du</span>';
-    html+='<span style="font-family:DM Mono,monospace;font-size:13px;font-weight:700;color:'+(totalDuTous>0?"#E74C3C":"#2ECC71")+'">'+fmt(totalDuTous)+' FCFA</span>';
-    html+='</div>';
-    html+='</div>';
-  }
+  // Historique cotisations par année
+  html+='<div style="background:var(--gm);border-radius:10px;margin-bottom:14px;overflow:hidden">';
+  html+='<div style="padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ts);border-bottom:1px solid var(--gb)">Historique des cotisations par annee</div>';
+  html+=anneesCotisHtml;
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(201,168,76,.08);border-top:1px solid rgba(201,168,76,.2)">';
+  html+='<span style="font-size:12px;font-weight:700;color:var(--blanc)">Total verse</span>';
+  html+='<span style="font-family:DM Mono,monospace;font-size:13px;font-weight:700;color:#2ECC71">'+Number(totalVerseTous).toLocaleString("fr-FR")+' FCFA</span>';
+  html+='</div>';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(201,168,76,.05)">';
+  html+='<span style="font-size:12px;font-weight:700;color:var(--blanc)">Solde global du</span>';
+  html+='<span style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:'+(totalDuTous>0?"#E74C3C":"#2ECC71")+'">'+Number(totalDuTous).toLocaleString("fr-FR")+' FCFA</span>';
+  html+='</div>';
+  html+='</div>';
 
+  // Infos contact
   html+='<div class="di-row">';
   html+='<div class="di"><div class="di-l">Telephone</div><div class="di-v" style="color:var(--bleu)">'+(m.tel||"—")+'</div></div>';
   html+='<div class="di"><div class="di-l">Reference</div><div class="di-v">'+m.fid+'</div></div>';
   if(m.notes) html+='<div class="di full"><div class="di-l">Notes</div><div class="di-v">'+m.notes+'</div></div>';
   html+='</div>';
 
-  html+='<div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">';
-  if(m.tel) html+='<a href="tel:'+m.tel+'" class="btn btn-call btn-full">Appeler '+m.tel+'</a>';
-  if(m.tel) html+='<button class="btn btn-wa btn-full" data-fid="'+fid+'" data-type="">WhatsApp</button>';
-  if(m.tel&&st!=="ok") html+='<button class="btn btn-danger btn-full" id="notif-cotis-btn">Envoyer relance cotisation (WA)</button>';
-  html+='<button class="btn btn-ghost btn-full" id="edit-cotis-btn">Modifier le versement</button>';
-  html+='<button class="btn btn-edit btn-full" id="edit-membre-btn">Modifier nom / telephone</button>';
+  // Boutons d'action
+  html+='<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">';
+  if(m.tel) html+='<a href="tel:'+m.tel+'" class="btn btn-call btn-full">📞 Appeler '+m.tel+'</a>';
+  if(m.tel) html+='<button class="btn btn-wa btn-full" id="wa-simple-btn">💬 WhatsApp simple</button>';
+  if(m.tel) html+='<button class="btn btn-danger btn-full" id="notif-cotis-btn">📋 Envoyer releve cotisations (WA)</button>';
+  html+='<button class="btn btn-ghost btn-full" id="edit-cotis-btn">✏️ Modifier le versement (Firestore)</button>';
+  html+='<button class="btn btn-edit btn-full" id="edit-membre-btn">📝 Modifier nom / telephone</button>';
   html+='</div>';
 
   document.getElementById("sh-m-body").innerHTML=html;
 
   // WA simple
-  document.getElementById("sh-m-body").querySelectorAll("button[data-fid]").forEach(function(btn){
-    btn.addEventListener("click",function(){waM(btn.dataset.fid,btn.dataset.type);});
-  });
-  // Relance cotisation détaillée signée Trésorerie
+  var waSimple = document.getElementById("wa-simple-btn");
+  if (waSimple) waSimple.addEventListener("click", function(){ waM(fid, ""); });
+
+  // Relance détaillée signée Trésorerie
   var notifBtn = document.getElementById("notif-cotis-btn");
   if (notifBtn) {
     notifBtn.addEventListener("click", function(){
-      waMCotisDetail(fid);
+      waMCotisDetail(fid, dataCotis);
       cs("sh-m");
     });
   }
-  document.getElementById("edit-cotis-btn").addEventListener("click",function(){editCotis(fid);});
-  document.getElementById("edit-membre-btn").addEventListener("click",function(){openEditMembre(fid);});
+
+  document.getElementById("edit-cotis-btn").addEventListener("click", function(){ editCotis(fid); });
+  document.getElementById("edit-membre-btn").addEventListener("click", function(){ openEditMembre(fid); });
   os("sh-m");
 }
 
-/* Message WhatsApp cotisation détaillé par année — signé Trésorerie */
-function waMCotisDetail(fid) {
+/* Message WhatsApp relevé cotisations détaillé par année — signé La Trésorière */
+function waMCotisDetail(fid, dataCotis) {
   var m = membres.find(function(x){return x.fid===fid;});
   if (!m || !m.tel) { showToast("Aucun numero disponible"); return; }
   var tel = (m.tel||"").replace(/[\s\-\.]/g,"");
-  var nomCotis = m.nom;
-  var dataCotis = COTIS_DATA[nomCotis] || null;
 
-  var lignes = "Bonjour,\n\nLe Syndicat Patronal des Industries de l'Hotellerie et du Tourisme — SPIHT Ocean vous adresse le present etat de vos cotisations syndicales :\n\n";
-  lignes += "ETABLISSEMENT : " + m.nom + "\n";
-  lignes += "─────────────────────────\n";
+  var msg = "Bonjour,\n\n";
+  msg += "Le Syndicat Patronal des Industries de l'Hotellerie et du Tourisme — SPIHT Ocean vous adresse le releve de vos cotisations syndicales.\n\n";
+  msg += "ETABLISSEMENT : " + m.nom + "\n";
+  msg += "────────────────────────\n";
 
   var totalVerse = 0, totalDu = 0;
+
   if (dataCotis) {
     ANNEES.forEach(function(a){
       var d = dataCotis[parseInt(a)] || {verse:0,attendu:60000};
-      var v=d.verse||0, at=d.attendu||60000, s=at-v;
+      var v=d.verse||0, at=d.attendu||60000, s=Math.max(0,at-v);
       totalVerse += v; totalDu += s;
-      lignes += "ANNEE " + a + " :\n";
-      lignes += "  Cotisation attendue : " + Number(at).toLocaleString("fr-FR") + " FCFA\n";
-      lignes += "  Montant verse       : " + Number(v).toLocaleString("fr-FR") + " FCFA\n";
-      lignes += "  Solde restant       : " + Number(s).toLocaleString("fr-FR") + " FCFA";
-      lignes += (s===0 ? " ✅" : s<at && v>0 ? " ⚠️" : " ❌") + "\n";
-      if (a !== ANNEES[ANNEES.length-1]) lignes += "─────────────────────────\n";
+      msg += "\nANNEE " + a + " :\n";
+      msg += "  Cotisation due    : " + Number(at).toLocaleString("fr-FR") + " FCFA\n";
+      msg += "  Montant verse     : " + Number(v).toLocaleString("fr-FR") + " FCFA\n";
+      msg += "  Solde restant     : " + Number(s).toLocaleString("fr-FR") + " FCFA";
+      msg += (s===0?" ✅":v>0?" ⚠️":" ❌") + "\n";
     });
   } else {
-    var solde = (m.attendu||60000)-(m.verse||0);
-    lignes += "Montant verse : " + Number(m.verse||0).toLocaleString("fr-FR") + " FCFA\n";
-    lignes += "Solde restant : " + Number(solde).toLocaleString("fr-FR") + " FCFA\n";
-    totalVerse = m.verse||0; totalDu = solde;
+    var sv=m.verse||0, sa=m.attendu||60000;
+    totalVerse=sv; totalDu=Math.max(0,sa-sv);
+    msg += "\nVerse     : " + Number(sv).toLocaleString("fr-FR") + " FCFA\n";
+    msg += "Solde du  : " + Number(totalDu).toLocaleString("fr-FR") + " FCFA\n";
   }
 
-  lignes += "═════════════════════════\n";
-  lignes += "TOTAL VERSE  : " + Number(totalVerse).toLocaleString("fr-FR") + " FCFA\n";
-  lignes += "SOLDE GLOBAL : " + Number(totalDu).toLocaleString("fr-FR") + " FCFA\n";
-  lignes += "═════════════════════════\n\n";
+  msg += "\n════════════════════════\n";
+  msg += "TOTAL VERSE  : " + Number(totalVerse).toLocaleString("fr-FR") + " FCFA\n";
+  msg += "SOLDE GLOBAL : " + Number(totalDu).toLocaleString("fr-FR") + " FCFA\n";
+  msg += "════════════════════════\n\n";
 
   if (totalDu > 0) {
-    lignes += "Nous vous remercions de bien vouloir regulariser votre situation dans les meilleurs delais.\n\n";
-    lignes += "Pour tout versement ou information :\nContact : 697 670 820 | 679 349 327\n\n";
+    msg += "Nous vous remercions de regulariser votre situation dans les meilleurs delais.\n";
+    msg += "Pour tout versement : 697 670 820 | 679 349 327\n\n";
   } else {
-    lignes += "Votre cotisation est a jour. Nous vous remercions pour votre engagement.\n\n";
+    msg += "Votre cotisation est entierement a jour. Merci pour votre engagement !\n\n";
   }
 
-  lignes += "Cordialement,\n";
-  lignes += "La Tresoriere — SPIHT Ocean\n";
-  lignes += "Bureau Departemental de l'Ocean";
+  msg += "Cordialement,\n";
+  msg += "La Tresoriere\n";
+  msg += "SPIHT Ocean — Bureau Departemental de l'Ocean";
 
-  window.open("https://wa.me/237" + tel + "?text=" + encodeURIComponent(lignes), "_blank");
+  window.open("https://wa.me/237" + tel + "?text=" + encodeURIComponent(msg), "_blank");
+  logAct("Releve cotisations envoye : " + m.nom, "or");
 }
+
+/* Message WhatsApp cotisation détaillé par année — signé Trésorerie */
+
 
 function editCotis(fid) {
   var m=membres.find(function(x){return x.fid===fid;});if(!m)return;
