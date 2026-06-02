@@ -137,6 +137,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--gb);border-radius:3px;}
+/* ══ RAPPORTS CSS ══ */
+.rp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.rp-card{background:var(--gp);border:1px solid var(--gb);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .2s;text-align:center;}
+.rp-card:active{border-color:var(--or);}
+.rp-card-ico{font-size:28px;margin-bottom:6px;}
+.rp-card-title{font-size:12px;font-weight:700;color:var(--blanc);margin-bottom:3px;}
+.rp-card-desc{font-size:10px;color:var(--ts);line-height:1.4;}
+.rp-section{background:var(--gp);border:1px solid var(--gb);border-radius:12px;padding:14px;margin-bottom:12px;}
+.rp-section-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--blanc);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.rp-btn{width:100%;padding:12px;border-radius:9px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:all .2s;}
+.rp-btn:last-child{margin-bottom:0;}
+.rp-btn-or{background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.3);}
+.rp-btn-bl{background:rgba(41,128,185,.15);color:#5DADE2;border:1px solid rgba(41,128,185,.3);}
+.rp-btn-gn{background:rgba(39,174,96,.15);color:#2ECC71;border:1px solid rgba(39,174,96,.3);}
+.rp-btn-rd{background:rgba(192,57,43,.15);color:#E74C3C;border:1px solid rgba(192,57,43,.3);}
+.rp-btn-pu{background:rgba(155,89,182,.15);color:#BB8FCE;border:1px solid rgba(155,89,182,.3);}
+
 
 /* ══ FINANCES CSS ══ */
 .yr-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
@@ -313,6 +330,55 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
       </div>
     </div>
 
+
+    <!-- RAPPORTS -->
+    <div class="page" id="page-rapports">
+      <div class="rp-section">
+        <div class="rp-section-title">📊 Rapport instantané (à la demande)</div>
+        <button class="rp-btn rp-btn-or" id="rp-complet">📋 Rapport complet SPIHT Ocean</button>
+        <button class="rp-btn rp-btn-gn" id="rp-membres">🏨 Rapport membres & cotisations</button>
+        <button class="rp-btn rp-btn-bl" id="rp-finances">💰 Rapport financier & caisses</button>
+        <button class="rp-btn rp-btn-pu" id="rp-reunions">📅 Rapport réunions & activités</button>
+        <button class="rp-btn rp-btn-rd" id="rp-alertes">🔔 Rapport alertes envoyées</button>
+      </div>
+      <div class="rp-section">
+        <div class="rp-section-title">📅 Rapport mensuel</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <select class="fsel2" id="rp-mois" style="flex:1">
+            <option value="1">Janvier</option><option value="2">Février</option>
+            <option value="3">Mars</option><option value="4">Avril</option>
+            <option value="5">Mai</option><option value="6">Juin</option>
+            <option value="7">Juillet</option><option value="8">Août</option>
+            <option value="9">Septembre</option><option value="10">Octobre</option>
+            <option value="11">Novembre</option><option value="12">Décembre</option>
+          </select>
+          <select class="fsel2" id="rp-annee-m" style="flex:1">
+            <option value="2024">2024</option>
+            <option value="2025" selected>2025</option>
+            <option value="2026">2026</option>
+          </select>
+        </div>
+        <button class="rp-btn rp-btn-bl" id="rp-gen-mensuel">📄 Générer rapport mensuel</button>
+      </div>
+      <div class="rp-section">
+        <div class="rp-section-title">📆 Rapport annuel</div>
+        <div style="margin-bottom:10px;">
+          <select class="fsel2" id="rp-annee-a" style="width:100%">
+            <option value="2024">Année 2024</option>
+            <option value="2025" selected>Année 2025</option>
+            <option value="2026">Année 2026</option>
+          </select>
+        </div>
+        <button class="rp-btn rp-btn-or" id="rp-gen-annuel">📊 Générer rapport annuel complet</button>
+      </div>
+      <div class="rp-section" style="opacity:.6">
+        <div class="rp-section-title">ℹ️ Information</div>
+        <div style="font-size:12px;color:var(--ts);line-height:1.6">
+          Les rapports sont générés en HTML et peuvent être ouverts dans le navigateur puis imprimés en PDF via le menu d'impression de votre appareil.<br><br>
+          Tous les rapports sont signés <strong style="color:var(--or)">SPIHT Océan — Bureau Syndical</strong>.
+        </div>
+      </div>
+    </div>
   </div><!-- /content -->
 
   <nav class="bottom-nav">
@@ -320,6 +386,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
     <button class="bn-item" id="nav-membres"><span class="bn-ic">🏨</span><span>Membres</span><span class="bn-badge" id="bdg-r">0</span></button>
     <button class="bn-item" id="nav-contacts"><span class="bn-ic">📞</span><span>Contacts</span></button>
     <button class="bn-item" id="nav-finances"><span class="bn-ic">💰</span><span>Finances</span></button>
+    <button class="bn-item" id="nav-rapports"><span class="bn-ic">📊</span><span>Rapports</span></button>
     <button class="bn-item" id="nav-reunions"><span class="bn-ic">📅</span><span>Agenda</span></button>
     <button class="bn-item" id="nav-alertes"><span class="bn-ic">🔔</span><span>Alertes</span></button>
   </nav>
@@ -1609,7 +1676,7 @@ function gp(page) {
   if (navEl) navEl.classList.add("active");
   curPage = page;
   var fab = document.getElementById("fab");
-  fab.className = ["dashboard","alertes","finances"].includes(page) ? "fab hidden" : "fab";
+  fab.className = ["dashboard","alertes","finances","rapports"].includes(page) ? "fab hidden" : "fab";
   if (page==="dashboard") rdash();
   if (page==="membres") fm();
   if (page==="contacts") rcont();
@@ -1617,9 +1684,10 @@ function gp(page) {
   if (page==="reunions") rreu();
   if (page==="alertes") ral();
   if (page==="finances") renderFinances();
+  if (page==="rapports") initRapports();
 }
 
-["dashboard","membres","contacts","finances","reunions","alertes"].forEach(function(page){
+["dashboard","membres","contacts","finances","reunions","alertes","rapports"].forEach(function(page){
   var el = document.getElementById("nav-"+page);
   if (el) el.addEventListener("click",function(){gp(page);});
 });
@@ -1654,6 +1722,347 @@ document.getElementById("cancel-mouv").addEventListener("click",function(){cs("s
 
 // Recherche finances en temps reel
 document.getElementById("fin-srch").addEventListener("input",renderFinances);
+
+/* ══════════════════════════════════════════════════
+   MODULE RAPPORTS — PDF TÉLÉCHARGEABLES
+══════════════════════════════════════════════════ */
+
+var MO_LONG = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+
+function rpCSS() {
+  return '<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:20px;}' +
+    '.back{position:fixed;top:10px;left:10px;background:#C9A84C;color:#000;border:none;padding:7px 13px;border-radius:7px;font-size:12px;font-weight:bold;cursor:pointer;z-index:999;}' +
+    'h1{font-size:16px;font-weight:bold;color:#1F3864;margin-bottom:4px;}' +
+    'h2{font-size:13px;font-weight:bold;color:#C9A84C;border-bottom:1px solid #C9A84C;padding-bottom:3px;margin:16px 0 8px;}' +
+    'h3{font-size:11px;font-weight:bold;color:#2E75B6;margin:10px 0 5px;}' +
+    '.en{text-align:center;border-bottom:2px solid #C9A84C;padding-bottom:12px;margin-bottom:16px;margin-top:36px;}' +
+    '.en p{font-size:10px;color:#666;margin-top:3px;}' +
+    '.meta{font-size:10px;color:#888;margin-bottom:16px;padding:8px 12px;background:#f5f5f5;border-radius:5px;}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:10px;}' +
+    'th{background:#1F3864;color:#fff;padding:6px 8px;text-align:left;}' +
+    'td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top;}' +
+    'tr:nth-child(even) td{background:#f9f9f9;}' +
+    '.ok{color:#27AE60;font-weight:bold;}.rd{color:#C0392B;font-weight:bold;}.pt{color:#E67E22;font-weight:bold;}.or{color:#C9A84C;font-weight:bold;}' +
+    '.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}' +
+    '.stat{background:#f0f4ff;border:1px solid #dde4ff;border-radius:6px;padding:10px;text-align:center;}' +
+    '.stat-n{font-size:22px;font-weight:bold;color:#1F3864;}' +
+    '.stat-l{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.5px;}' +
+    '.caisse-bloc{background:#f9f9f9;border:1px solid #eee;border-radius:6px;padding:10px;margin-bottom:8px;}' +
+    '.c-titre{font-size:12px;font-weight:bold;color:#C9A84C;margin-bottom:6px;}' +
+    '.c-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f0f0f0;font-size:10px;}' +
+    '.c-row:last-child{border-bottom:none;}' +
+    '.c-solde{display:flex;justify-content:space-between;margin-top:6px;padding:6px 8px;background:#1F3864;border-radius:4px;color:#fff;font-weight:bold;font-size:11px;}' +
+    '.sig{margin-top:30px;display:flex;justify-content:space-between;}' +
+    '.sig-bloc{text-align:center;width:45%;}' +
+    '.sig-line{border-top:1px solid #333;padding-top:4px;font-size:10px;}' +
+    '.ft{margin-top:20px;border-top:1px solid #eee;padding-top:8px;font-size:9px;color:#aaa;text-align:center;}' +
+    '@page{margin:1.2cm;}@media print{body{padding:0;}.back{display:none;}}</style>';
+}
+
+function rpEN(titre, sous) {
+  return '<div class="en"><h1>' + titre + '</h1><p>' + (sous||'Syndicat Patronal des Industries de lHotellerie et du Tourisme — SPIHT Ocean') + '</p><p>Bureau Departemental de lOcean | 697 670 820 | 679 349 327 | 655 931 027</p></div>';
+}
+
+function rpMeta(type, periode) {
+  var now = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  return '<div class="meta"><strong>Type :</strong> ' + type + ' &nbsp;|&nbsp; <strong>Periode :</strong> ' + periode + ' &nbsp;|&nbsp; <strong>Genere le :</strong> ' + now + ' &nbsp;|&nbsp; <strong>Par :</strong> Bureau SPIHT Ocean</div>';
+}
+
+function rpSig() {
+  return '<div class="sig"><div class="sig-bloc"><div class="sig-line">Le Secretaire General<br>ETEME Stephane</div></div><div class="sig-bloc"><div class="sig-line">La Tresoriere<br>SPIHT Ocean</div></div></div>';
+}
+
+function rpFt() {
+  return '<div class="ft">Document officiel SPIHT Ocean — Bureau Departemental de lOcean — Confidentiel</div>';
+}
+
+function telechargerRapport(contenu, nomFichier) {
+  var blob = new Blob([contenu], {type:'text/html;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = nomFichier;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);}, 2000);
+  showToast('Rapport genere — ouvrez le fichier pour imprimer');
+}
+
+/* ── RAPPORT MEMBRES ── */
+function genRapportMembres(periode) {
+  periode = periode || 'Instantane — ' + new Date().toLocaleDateString('fr-FR');
+  var tot = membres.length;
+  var aj = membres.filter(function(m){return cotisStatus(m)==='ok';}).length;
+  var rt = membres.filter(function(m){return cotisStatus(m)==='retard';}).length;
+  var pa = membres.filter(function(m){return cotisStatus(m)==='partiel';}).length;
+  var col = membres.reduce(function(s,m){return s+(m.verse||0);},0);
+  var att = membres.reduce(function(s,m){return s+(m.attendu||60000);},0);
+  var pct = att ? Math.round(col/att*100) : 0;
+
+  var rows = membres.map(function(m,i){
+    var st = cotisStatus(m);
+    var stTxt = st==='ok'?'<span class="ok">A jour</span>':st==='partiel'?'<span class="pt">Partiel</span>':'<span class="rd">En retard</span>';
+    var solde = (m.attendu||60000)-(m.verse||0);
+    var carteInfo = m.carteStatut==='oui'?'✅':m.carteStatut==='attente'?'⏳':'—';
+    return '<tr><td style="text-align:center">'+(i+1)+'</td><td><strong>'+m.nom+'</strong></td><td>'+(m.promoteur||'—')+'</td><td>'+(m.tel||'—')+'</td><td style="text-align:right">'+Number(m.attendu||60000).toLocaleString('fr-FR')+'</td><td style="text-align:right">'+Number(m.verse||0).toLocaleString('fr-FR')+'</td><td style="text-align:right;font-weight:bold;color:'+(solde===0?'#27AE60':solde<(m.attendu||60000)?'#E67E22':'#C0392B')+'">'+Number(solde).toLocaleString('fr-FR')+'</td><td style="text-align:center">'+stTxt+'</td><td style="text-align:center">'+carteInfo+'</td></tr>';
+  }).join('');
+
+  var html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport Membres SPIHT</title>' + rpCSS() + '</head><body>';
+  html += '<button class="back" onclick="window.close()">Fermer</button>';
+  html += rpEN('RAPPORT MEMBRES & COTISATIONS');
+  html += rpMeta('Rapport Membres', periode);
+  html += '<div class="stat-grid">';
+  html += '<div class="stat"><div class="stat-n">'+tot+'</div><div class="stat-l">Total membres</div></div>';
+  html += '<div class="stat"><div class="stat-n" style="color:#27AE60">'+aj+'</div><div class="stat-l">A jour</div></div>';
+  html += '<div class="stat"><div class="stat-n" style="color:#E67E22">'+pa+'</div><div class="stat-l">Partiel</div></div>';
+  html += '<div class="stat"><div class="stat-n" style="color:#C0392B">'+rt+'</div><div class="stat-l">En retard</div></div>';
+  html += '</div>';
+  html += '<div style="background:#f0f8f0;border:1px solid #c3e6c3;border-radius:6px;padding:10px;margin-bottom:14px;font-size:11px">';
+  html += '<strong>Total collecte :</strong> '+Number(col).toLocaleString('fr-FR')+' FCFA &nbsp;|&nbsp; <strong>Total attendu :</strong> '+Number(att).toLocaleString('fr-FR')+' FCFA &nbsp;|&nbsp; <strong>Taux de collecte :</strong> <span class="ok">'+pct+'%</span></div>';
+  html += '<h2>Liste des membres — Etat des cotisations</h2>';
+  html += '<table><thead><tr><th>#</th><th>Etablissement</th><th>Promoteur</th><th>Telephone</th><th>Attendu</th><th>Verse</th><th>Solde</th><th>Statut</th><th>Carte</th></tr></thead><tbody>'+rows+'</tbody></table>';
+
+  // Historique par année depuis COTIS_DATA
+  html += '<h2>Historique des cotisations par annee (2024-2026)</h2>';
+  html += '<table><thead><tr><th>Etablissement</th><th style="text-align:right">2024 Verse</th><th style="text-align:right">2025 Verse</th><th style="text-align:right">2026 Verse</th><th style="text-align:right">Total verse</th><th style="text-align:right">Solde global</th></tr></thead><tbody>';
+  Object.keys(COTIS_DATA).forEach(function(nom){
+    var d = COTIS_DATA[nom];
+    var v24=(d[2024]||{}).verse||0, v25=(d[2025]||{}).verse||0, v26=(d[2026]||{}).verse||0;
+    var a24=(d[2024]||{}).attendu||60000, a25=(d[2025]||{}).attendu||60000, a26=(d[2026]||{}).attendu||60000;
+    var tv=v24+v25+v26, du=(a24-v24)+(a25-v25)+(a26-v26);
+    html += '<tr><td><strong>'+nom+'</strong></td>';
+    html += '<td style="text-align:right;color:'+(v24>=(d[2024]||{}).attendu||60000?'#27AE60':v24>0?'#E67E22':'#C0392B')+'">'+Number(v24).toLocaleString('fr-FR')+'</td>';
+    html += '<td style="text-align:right;color:'+(v25>=(d[2025]||{}).attendu||60000?'#27AE60':v25>0?'#E67E22':'#C0392B')+'">'+Number(v25).toLocaleString('fr-FR')+'</td>';
+    html += '<td style="text-align:right;color:'+(v26>=(d[2026]||{}).attendu||60000?'#27AE60':v26>0?'#E67E22':'#C0392B')+'">'+Number(v26).toLocaleString('fr-FR')+'</td>';
+    html += '<td style="text-align:right;font-weight:bold">'+Number(tv).toLocaleString('fr-FR')+'</td>';
+    html += '<td style="text-align:right;font-weight:bold;color:'+(du<=0?'#27AE60':'#C0392B')+'">'+Number(Math.max(0,du)).toLocaleString('fr-FR')+'</td></tr>';
+  });
+  html += '</tbody></table>';
+  html += rpSig() + rpFt() + '</body></html>';
+  telechargerRapport(html, 'Rapport_Membres_SPIHT_' + new Date().toLocaleDateString('fr-FR').replace(/\//g,'-') + '.html');
+  logAct('Rapport membres genere', 'bleu');
+}
+
+/* ── RAPPORT FINANCES ── */
+function genRapportFinances(periode) {
+  periode = periode || 'Instantane — ' + new Date().toLocaleDateString('fr-FR');
+  var totalCaisse = 0;
+  var caissesHtml = '';
+  Object.keys(CAISSES_DATA).forEach(function(key){
+    var c = CAISSES_DATA[key];
+    var entrees = c.mouvements.filter(function(m){return m.type==='entree';});
+    var sorties = c.mouvements.filter(function(m){return m.type==='sortie';});
+    var totE = entrees.reduce(function(s,m){return s+m.montant;},0);
+    var totS = sorties.reduce(function(s,m){return s+m.montant;},0);
+    var solde = totE - totS;
+    totalCaisse += solde;
+    caissesHtml += '<div class="caisse-bloc"><div class="c-titre">'+c.icone+' '+c.nom+'</div>';
+    if (entrees.length) {
+      caissesHtml += '<div style="font-size:9px;font-weight:bold;color:#888;margin-bottom:3px">ENTREES</div>';
+      entrees.forEach(function(m){ caissesHtml += '<div class="c-row"><span>'+m.label+'</span><span style="color:#27AE60;font-weight:bold">+ '+Number(m.montant).toLocaleString('fr-FR')+' F</span></div>'; });
+    }
+    if (sorties.length) {
+      caissesHtml += '<div style="font-size:9px;font-weight:bold;color:#888;margin-top:5px;margin-bottom:3px">SORTIES</div>';
+      sorties.forEach(function(m){ caissesHtml += '<div class="c-row"><span>'+m.label+'</span><span style="color:#C0392B;font-weight:bold">- '+Number(m.montant).toLocaleString('fr-FR')+' F</span></div>'; });
+    }
+    caissesHtml += '<div class="c-solde"><span>Solde '+c.nom+'</span><span>'+Number(solde).toLocaleString('fr-FR')+' FCFA</span></div></div>';
+  });
+
+  var totalCollecte=0, totalDu=0;
+  Object.keys(COTIS_DATA).forEach(function(nom){
+    var d=COTIS_DATA[nom];
+    ANNEES.forEach(function(a){if(d[a]){totalCollecte+=d[a].verse||0; totalDu+=Math.max(0,(d[a].attendu||60000)-(d[a].verse||0));}});
+  });
+
+  var html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport Financier SPIHT</title>' + rpCSS() + '</head><body>';
+  html += '<button class="back" onclick="window.close()">Fermer</button>';
+  html += rpEN('RAPPORT FINANCIER & ETAT DES CAISSES');
+  html += rpMeta('Rapport Financier', periode);
+  html += '<div class="stat-grid">';
+  html += '<div class="stat"><div class="stat-n" style="color:#27AE60">'+Number(totalCollecte).toLocaleString('fr-FR')+'</div><div class="stat-l">Total collecte (FCFA)</div></div>';
+  html += '<div class="stat"><div class="stat-n" style="color:#C0392B">'+Number(totalDu).toLocaleString('fr-FR')+'</div><div class="stat-l">Reste a percevoir (FCFA)</div></div>';
+  html += '<div class="stat"><div class="stat-n" style="color:#C9A84C">'+Number(totalCaisse).toLocaleString('fr-FR')+'</div><div class="stat-l">Total en caisse (FCFA)</div></div>';
+  html += '<div class="stat"><div class="stat-n">'+Object.keys(COTIS_DATA).length+'</div><div class="stat-l">Membres suivis</div></div>';
+  html += '</div>';
+  html += '<h2>Etat detaille des caisses</h2>' + caissesHtml;
+  html += '<h2>Cotisations par annee — Synthese</h2>';
+  html += '<table><thead><tr><th>Annee</th><th style="text-align:right">Total attendu</th><th style="text-align:right">Total verse</th><th style="text-align:right">Solde restant</th><th style="text-align:right">Taux</th></tr></thead><tbody>';
+  ANNEES.forEach(function(a){
+    var tv=0, ta=0;
+    Object.keys(COTIS_DATA).forEach(function(nom){var d=COTIS_DATA[nom][parseInt(a)]||{verse:0,attendu:60000};tv+=d.verse||0;ta+=d.attendu||60000;});
+    var pct=ta?Math.round(tv/ta*100):0;
+    html += '<tr><td><strong>'+a+'</strong></td><td style="text-align:right">'+Number(ta).toLocaleString('fr-FR')+'</td><td style="text-align:right;color:#27AE60;font-weight:bold">'+Number(tv).toLocaleString('fr-FR')+'</td><td style="text-align:right;color:#C0392B;font-weight:bold">'+Number(ta-tv).toLocaleString('fr-FR')+'</td><td style="text-align:right">'+pct+'%</td></tr>';
+  });
+  html += '</tbody></table>';
+  html += rpSig() + rpFt() + '</body></html>';
+  telechargerRapport(html, 'Rapport_Financier_SPIHT_' + new Date().toLocaleDateString('fr-FR').replace(/\//g,'-') + '.html');
+  logAct('Rapport financier genere', 'or');
+}
+
+/* ── RAPPORT REUNIONS ── */
+function genRapportReunions(periode) {
+  periode = periode || 'Instantane — ' + new Date().toLocaleDateString('fr-FR');
+  var cal = [
+    {periode:'PREALABLE IMMEDIAT',titre:'Ouverture du compte bancaire',details:'Finaliser le PV - Deposer les fonds'},
+    {periode:'Avril - Juin 2026',titre:'Formations Professionnelles',details:'Reception/Accueil - Securite - incendie'},
+    {periode:'Mai - Decembre 2026',titre:'Integration du Sport',details:'Sport dans toutes les rencontres'},
+    {periode:'Juillet 2026',titre:'Excursion a Limbe',details:'Bus - Seme Hotel - Packages loisirs'},
+    {periode:'Haute saison',titre:'Assemblee Generale et Ouverture de Saison',details:'AG statutaire + Lancement saison touristique'},
+    {periode:'Fin 2026',titre:'Evaluation et Projection 2027',details:'Bilan des activites - Ajustements'}
+  ];
+  var rRows = reunions.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);}).map(function(r){
+    var d = new Date(r.date);
+    var past = d < new Date();
+    return '<tr><td>'+d.toLocaleDateString('fr-FR')+'</td><td><strong>'+r.titre+'</strong></td><td>'+r.lieu+'</td><td>'+r.heure+'</td><td style="text-align:center">'+(past?'Passee':'A venir')+'</td><td>'+(r.rapport?'Oui':'—')+'</td></tr>';
+  }).join('');
+
+  var calRows = cal.map(function(c){
+    return '<tr><td><strong>'+c.periode+'</strong></td><td>'+c.titre+'</td><td>'+c.details+'</td></tr>';
+  }).join('');
+
+  var html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport Reunions SPIHT</title>' + rpCSS() + '</head><body>';
+  html += '<button class="back" onclick="window.close()">Fermer</button>';
+  html += rpEN('RAPPORT REUNIONS & ACTIVITES');
+  html += rpMeta('Rapport Reunions', periode);
+  html += '<div class="stat-grid" style="grid-template-columns:1fr 1fr">';
+  html += '<div class="stat"><div class="stat-n">'+reunions.length+'</div><div class="stat-l">Reunions tenues</div></div>';
+  html += '<div class="stat"><div class="stat-n">'+reunions.filter(function(r){return r.rapport;}).length+'</div><div class="stat-l">Avec rapport</div></div>';
+  html += '</div>';
+  html += '<h2>Historique des reunions du Bureau</h2>';
+  html += '<table><thead><tr><th>Date</th><th>Titre</th><th>Lieu</th><th>Heure</th><th>Statut</th><th>Rapport</th></tr></thead><tbody>'+(rRows||'<tr><td colspan="6" style="text-align:center">Aucune reunion</td></tr>')+'</tbody></table>';
+  html += '<h2>Calendrier des activites 2026</h2>';
+  html += '<table><thead><tr><th>Periode</th><th>Activite</th><th>Details</th></tr></thead><tbody>'+calRows+'</tbody></table>';
+  html += rpSig() + rpFt() + '</body></html>';
+  telechargerRapport(html, 'Rapport_Reunions_SPIHT_' + new Date().toLocaleDateString('fr-FR').replace(/\//g,'-') + '.html');
+  logAct('Rapport reunions genere', 'bleu');
+}
+
+/* ── RAPPORT ALERTES ── */
+function genRapportAlertes(periode) {
+  periode = periode || 'Instantane — ' + new Date().toLocaleDateString('fr-FR');
+  var d2t = function(ts){return ts&&ts.toDate?ts.toDate().toLocaleDateString('fr-FR'):ts||'—';};
+  var rows = alertes.map(function(a,i){
+    return '<tr><td style="text-align:center">'+(i+1)+'</td><td><span class="or">'+a.type+'</span></td><td><strong>'+a.objet+'</strong></td><td>'+a.message.substring(0,80)+(a.message.length>80?'...':'')+'</td><td>'+d2t(a.createdAt)+'</td><td>'+(a.createdBy||'bureau')+'</td></tr>';
+  }).join('');
+
+  var html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport Alertes SPIHT</title>' + rpCSS() + '</head><body>';
+  html += '<button class="back" onclick="window.close()">Fermer</button>';
+  html += rpEN('RAPPORT ALERTES & NOTIFICATIONS');
+  html += rpMeta('Rapport Alertes', periode);
+  html += '<div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">';
+  ['Controle','Reglement','Information','Urgent'].forEach(function(t){
+    var n = alertes.filter(function(a){return a.type===t;}).length;
+    html += '<div class="stat"><div class="stat-n">'+n+'</div><div class="stat-l">'+t+'</div></div>';
+  });
+  html += '</div>';
+  html += '<h2>Historique des alertes envoyees</h2>';
+  html += '<table><thead><tr><th>#</th><th>Type</th><th>Objet</th><th>Message</th><th>Date</th><th>Par</th></tr></thead><tbody>'+(rows||'<tr><td colspan="6" style="text-align:center">Aucune alerte</td></tr>')+'</tbody></table>';
+  html += rpSig() + rpFt() + '</body></html>';
+  telechargerRapport(html, 'Rapport_Alertes_SPIHT_' + new Date().toLocaleDateString('fr-FR').replace(/\//g,'-') + '.html');
+  logAct('Rapport alertes genere', 'rouge');
+}
+
+/* ── RAPPORT COMPLET ── */
+function genRapportComplet(periode) {
+  periode = periode || 'Instantane — ' + new Date().toLocaleDateString('fr-FR');
+  var now = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  var tot=membres.length, aj=membres.filter(function(m){return cotisStatus(m)==='ok';}).length;
+  var rt=membres.filter(function(m){return cotisStatus(m)==='retard';}).length;
+  var col=membres.reduce(function(s,m){return s+(m.verse||0);},0);
+  var att=membres.reduce(function(s,m){return s+(m.attendu||60000);},0);
+  var pct=att?Math.round(col/att*100):0;
+  var totalCaisse=Object.keys(CAISSES_DATA).reduce(function(s,k){
+    var c=CAISSES_DATA[k]; return s+c.mouvements.reduce(function(s2,m){return m.type==='entree'?s2+m.montant:s2-m.montant;},0);
+  },0);
+
+  var mRows = membres.map(function(m,i){
+    var st=cotisStatus(m); var solde=(m.attendu||60000)-(m.verse||0);
+    var stTxt=st==='ok'?'<span class="ok">A jour</span>':st==='partiel'?'<span class="pt">Partiel</span>':'<span class="rd">En retard</span>';
+    return '<tr><td>'+(i+1)+'</td><td><strong>'+m.nom+'</strong></td><td>'+(m.tel||'—')+'</td><td style="text-align:right">'+Number(m.verse||0).toLocaleString('fr-FR')+'</td><td style="text-align:right;color:'+(solde<=0?'#27AE60':'#C0392B')+'">'+Number(solde).toLocaleString('fr-FR')+'</td><td>'+stTxt+'</td></tr>';
+  }).join('');
+
+  var html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport Complet SPIHT</title>' + rpCSS() + '</head><body>';
+  html += '<button class="back" onclick="window.close()">Fermer</button>';
+  html += rpEN('RAPPORT COMPLET — SPIHT OCEAN', 'Syndicat Patronal des Industries de lHotellerie et du Tourisme');
+  html += rpMeta('Rapport Complet Tous Modules', periode);
+
+  html += '<h2>1. SYNTHESE GENERALE</h2>';
+  html += '<div class="stat-grid">';
+  html += '<div class="stat"><div class="stat-n">'+tot+'</div><div class="stat-l">Membres</div></div>';
+  html += '<div class="stat"><div class="stat-n" style="color:#27AE60">'+aj+'</div><div class="stat-l">A jour</div></div>';
+  html += '<div class="stat"><div class="stat-n" style="color:#C0392B">'+rt+'</div><div class="stat-l">En retard</div></div>';
+  html += '<div class="stat"><div class="stat-n" style="color:#C9A84C">'+pct+'%</div><div class="stat-l">Taux collecte</div></div>';
+  html += '</div>';
+  html += '<div class="stat-grid">';
+  html += '<div class="stat"><div class="stat-n" style="font-size:14px;color:#27AE60">'+Number(col).toLocaleString('fr-FR')+'</div><div class="stat-l">Collecte (FCFA)</div></div>';
+  html += '<div class="stat"><div class="stat-n" style="font-size:14px;color:#C0392B">'+Number(att-col).toLocaleString('fr-FR')+'</div><div class="stat-l">Reste (FCFA)</div></div>';
+  html += '<div class="stat"><div class="stat-n" style="font-size:14px;color:#C9A84C">'+Number(totalCaisse).toLocaleString('fr-FR')+'</div><div class="stat-l">En caisse (FCFA)</div></div>';
+  html += '<div class="stat"><div class="stat-n">'+reunions.length+'</div><div class="stat-l">Reunions</div></div>';
+  html += '</div>';
+
+  html += '<h2>2. MEMBRES & COTISATIONS</h2>';
+  html += '<table><thead><tr><th>#</th><th>Etablissement</th><th>Telephone</th><th style="text-align:right">Verse</th><th style="text-align:right">Solde</th><th>Statut</th></tr></thead><tbody>'+mRows+'</tbody></table>';
+
+  html += '<h2>3. ETAT DES CAISSES</h2>';
+  Object.keys(CAISSES_DATA).forEach(function(key){
+    var c=CAISSES_DATA[key];
+    var solde=c.mouvements.reduce(function(s,m){return m.type==='entree'?s+m.montant:s-m.montant;},0);
+    html += '<div class="caisse-bloc"><div class="c-titre">'+c.icone+' '+c.nom+' — Solde : '+Number(solde).toLocaleString('fr-FR')+' FCFA</div>';
+    c.mouvements.forEach(function(m){
+      html += '<div class="c-row"><span>'+m.label+'</span><span style="color:'+(m.type==='entree'?'#27AE60':'#C0392B');
+      html += ';font-weight:bold">'+(m.type==='entree'?'+':'-')+' '+Number(m.montant).toLocaleString('fr-FR')+' F</span></div>';
+    });
+    html += '</div>';
+  });
+
+  html += '<h2>4. REUNIONS DU BUREAU</h2>';
+  html += '<table><thead><tr><th>Date</th><th>Titre</th><th>Lieu</th><th>Rapport</th></tr></thead><tbody>';
+  reunions.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);}).forEach(function(r){
+    html += '<tr><td>'+new Date(r.date).toLocaleDateString('fr-FR')+'</td><td><strong>'+r.titre+'</strong></td><td>'+r.lieu+'</td><td>'+(r.rapport?r.rapport.substring(0,60)+'...':'—')+'</td></tr>';
+  });
+  html += '</tbody></table>';
+
+  html += '<h2>5. ALERTES RECENTES</h2>';
+  html += '<table><thead><tr><th>Type</th><th>Objet</th><th>Date</th></tr></thead><tbody>';
+  var d2t=function(ts){return ts&&ts.toDate?ts.toDate().toLocaleDateString('fr-FR'):ts||'—';};
+  alertes.slice(0,10).forEach(function(a){
+    html += '<tr><td><span class="or">'+a.type+'</span></td><td>'+a.objet+'</td><td>'+d2t(a.createdAt)+'</td></tr>';
+  });
+  if (!alertes.length) html += '<tr><td colspan="3" style="text-align:center">Aucune alerte</td></tr>';
+  html += '</tbody></table>';
+
+  html += rpSig() + rpFt() + '</body></html>';
+  telechargerRapport(html, 'Rapport_Complet_SPIHT_' + new Date().toLocaleDateString('fr-FR').replace(/\//g,'-') + '.html');
+  logAct('Rapport complet genere', 'or');
+}
+
+/* ── RAPPORT MENSUEL ── */
+function genRapportMensuel() {
+  var mois = parseInt(document.getElementById('rp-mois').value);
+  var annee = parseInt(document.getElementById('rp-annee-m').value);
+  var periode = MO_LONG[mois-1] + ' ' + annee;
+  // Pour le mensuel on génère un rapport complet filtré sur le mois
+  genRapportComplet('Mensuel — ' + periode);
+  logAct('Rapport mensuel '+periode+' genere', 'or');
+}
+
+/* ── RAPPORT ANNUEL ── */
+function genRapportAnnuel() {
+  var annee = document.getElementById('rp-annee-a').value;
+  var periode = 'Annuel — ' + annee;
+  genRapportComplet(periode);
+  logAct('Rapport annuel '+annee+' genere', 'or');
+}
+
+/* ── INIT RAPPORTS ── */
+function initRapports() {
+  document.getElementById('rp-complet').addEventListener('click', function(){ showToast('Generation...','⏳'); setTimeout(function(){genRapportComplet();},200); });
+  document.getElementById('rp-membres').addEventListener('click', function(){ showToast('Generation...','⏳'); setTimeout(function(){genRapportMembres();},200); });
+  document.getElementById('rp-finances').addEventListener('click', function(){ showToast('Generation...','⏳'); setTimeout(function(){genRapportFinances();},200); });
+  document.getElementById('rp-reunions').addEventListener('click', function(){ showToast('Generation...','⏳'); setTimeout(function(){genRapportReunions();},200); });
+  document.getElementById('rp-alertes').addEventListener('click', function(){ showToast('Generation...','⏳'); setTimeout(function(){genRapportAlertes();},200); });
+  document.getElementById('rp-gen-mensuel').addEventListener('click', function(){ showToast('Generation...','⏳'); setTimeout(function(){genRapportMensuel();},200); });
+  document.getElementById('rp-gen-annuel').addEventListener('click', function(){ showToast('Generation...','⏳'); setTimeout(function(){genRapportAnnuel();},200); });
+}
 
 </script>
 </body>
