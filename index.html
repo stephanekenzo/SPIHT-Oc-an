@@ -656,6 +656,7 @@ function initData() {
   initReunions();
   initAlertes();
   initActivites();
+  initFinances();
 }
 
 /* ══ MEMBRES FIRESTORE ══ */
@@ -1029,12 +1030,19 @@ document.getElementById("save-am").addEventListener("click",function(){
     createdAt:serverTimestamp(),
     createdBy:curUser?curUser.email:"bureau"
   }).then(function(){
-    // Ajouter aussi dans COTIS_DATA local pour le module finances
+    // Ajouter dans COTIS_DATA + Firestore
     COTIS_DATA[n] = {
       2024:{verse:v24,attendu:a24},
       2025:{verse:v25,attendu:a25},
       2026:{verse:v26,attendu:a26}
     };
+    var safeIdN = n.replace(/[^a-zA-Z0-9_\-]/g, "_").slice(0, 100);
+    setDoc(doc(db, "cotisations", safeIdN), {
+      nom: n,
+      annees: COTIS_DATA[n],
+      updatedAt: serverTimestamp(),
+      updatedBy: curUser ? curUser.email : "bureau"
+    }).catch(function(e) { console.error("Erreur cotis nouveau membre:", e); });
     cs("sh-am");
     ["am-n","am-p","am-t","am-carte","am-no"].forEach(function(id){document.getElementById(id).value="";});
     ["am-v24","am-v25","am-v26"].forEach(function(id){document.getElementById(id).value="0";});
@@ -1403,6 +1411,66 @@ var CAISSES_DATA = {
 };
 
 var ANNEES = ["2024","2025","2026"];
+
+/* ══ INIT FINANCES FIRESTORE ══ */
+function initFinances() {
+  // Charger cotisations depuis Firestore
+  onSnapshot(collection(db,"cotisations"), function(snap) {
+    if (!snap.empty) {
+      snap.docs.forEach(function(d) {
+        var data = d.data();
+        var nom = d.id; // L'ID du document = nom de l'établissement
+        if (data.annees) {
+          COTIS_DATA[nom] = data.annees;
+        }
+      });
+    } else {
+      // Premier lancement — pousser COTIS_DATA initial vers Firestore
+      var batch = [];
+      Object.keys(COTIS_DATA).forEach(function(nom) {
+        var safeId = nom.replace(/[^a-zA-Z0-9_\-]/g, "_").slice(0, 100);
+        batch.push(setDoc(doc(db, "cotisations", safeId), {
+          nom: nom,
+          annees: COTIS_DATA[nom],
+          updatedAt: serverTimestamp(),
+          updatedBy: "init"
+        }));
+      });
+      Promise.all(batch).then(function() {
+        showToast("Cotisations synchronisees sur Firestore");
+        logAct("Cotisations initialisees sur Firestore", "or");
+      }).catch(function(e) { console.error("Erreur init cotisations:", e); });
+    }
+    if (curPage === "finances") renderFinances();
+    syncDot("ok");
+  });
+
+  // Charger mouvements de caisse depuis Firestore
+  onSnapshot(collection(db,"caisses"), function(snap) {
+    if (!snap.empty) {
+      snap.docs.forEach(function(d) {
+        var key = d.id;
+        var data = d.data();
+        if (CAISSES_DATA[key] && data.mouvements) {
+          CAISSES_DATA[key].mouvements = data.mouvements;
+        }
+      });
+      if (curPage === "finances") renderFinances();
+    } else {
+      // Premier lancement — pousser CAISSES_DATA initial
+      var batch2 = [];
+      Object.keys(CAISSES_DATA).forEach(function(key) {
+        batch2.push(setDoc(doc(db, "caisses", key), {
+          nom: CAISSES_DATA[key].nom,
+          icone: CAISSES_DATA[key].icone,
+          mouvements: CAISSES_DATA[key].mouvements,
+          updatedAt: serverTimestamp()
+        }));
+      });
+      Promise.all(batch2).catch(function(e) { console.error("Erreur init caisses:", e); });
+    }
+  });
+}
 var curAnneeF = "Toutes";
 
 function calcSolde(caisse) {
@@ -1609,11 +1677,21 @@ document.getElementById("save-cotis").addEventListener("click", function(){
   var attendu = parseInt(document.getElementById("co-attendu").value)||60000;
   if (!nom) { showToast("Membre requis"); return; }
   if (!COTIS_DATA[nom]) COTIS_DATA[nom] = {};
-  COTIS_DATA[nom][annee] = {verse:verse,attendu:attendu};
-  cs("sh-cotis");
-  showToast(nom+" - "+annee+" mis a jour");
-  logAct("Cotisation "+annee+" : "+nom+" - "+Number(verse).toLocaleString("fr-FR")+" FCFA","or");
-  renderFinances();
+  COTIS_DATA[nom][annee] = {verse:verse, attendu:attendu};
+  // Sauvegarder sur Firestore
+  var safeId = nom.replace(/[^a-zA-Z0-9_\-]/g, "_").slice(0, 100);
+  syncDot("loading");
+  setDoc(doc(db, "cotisations", safeId), {
+    nom: nom,
+    annees: COTIS_DATA[nom],
+    updatedAt: serverTimestamp(),
+    updatedBy: curUser ? curUser.email : "bureau"
+  }).then(function() {
+    cs("sh-cotis");
+    showToast(nom + " — " + annee + " sauvegarde");
+    logAct("Cotisation " + annee + " : " + nom + " — " + Number(verse).toLocaleString("fr-FR") + " FCFA", "or");
+    renderFinances();
+  }).catch(function(e) { showToast("Erreur : " + e.message); });
 });
 
 // Peupler le select membres dans le sheet cotis
@@ -1650,11 +1728,21 @@ document.getElementById("save-mouv").addEventListener("click", function(){
   if (!label || !montant) { showToast("Libelle et montant requis"); return; }
   if (!CAISSES_DATA[caisseKey]) { showToast("Caisse introuvable"); return; }
   var dateStr = date ? new Date(date).toLocaleDateString("fr-FR") : new Date().toLocaleDateString("fr-FR");
-  CAISSES_DATA[caisseKey].mouvements.push({type:type,label:label,montant:montant,date:dateStr});
-  cs("sh-mouv");
-  showToast((type==="entree"?"Entree":"Sortie")+" : "+Number(montant).toLocaleString("fr-FR")+" FCFA");
-  logAct((type==="entree"?"Entree":"Sortie")+" caisse "+CAISSES_DATA[caisseKey].nom+" : "+label,"bleu");
-  renderFinances();
+  CAISSES_DATA[caisseKey].mouvements.push({type:type, label:label, montant:montant, date:dateStr});
+  // Sauvegarder sur Firestore
+  syncDot("loading");
+  setDoc(doc(db, "caisses", caisseKey), {
+    nom: CAISSES_DATA[caisseKey].nom,
+    icone: CAISSES_DATA[caisseKey].icone,
+    mouvements: CAISSES_DATA[caisseKey].mouvements,
+    updatedAt: serverTimestamp(),
+    updatedBy: curUser ? curUser.email : "bureau"
+  }).then(function() {
+    cs("sh-mouv");
+    showToast((type==="entree"?"Entree":"Sortie")+" : "+Number(montant).toLocaleString("fr-FR")+" FCFA");
+    logAct((type==="entree"?"Entree":"Sortie")+" caisse "+CAISSES_DATA[caisseKey].nom+" : "+label, "bleu");
+    renderFinances();
+  }).catch(function(e) { showToast("Erreur : " + e.message); });
 });
 
 /* ══ NAVIGATION ══ */
