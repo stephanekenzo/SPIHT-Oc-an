@@ -228,11 +228,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
       </div>
       <div class="panel">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <div class="panel-title" style="margin-bottom:0">Taux de collecte</div>
+          <div class="panel-title" style="margin-bottom:0">Taux de collecte global</div>
           <span id="taux-pct" style="font-family:'DM Mono',monospace;font-size:14px;color:var(--or);font-weight:700">0%</span>
         </div>
         <div class="cbar" style="height:8px"><div class="cfill" id="taux-bar" style="width:0%"></div></div>
         <div style="font-size:11px;color:var(--ts);margin-top:5px" id="taux-det">Chargement...</div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Cotisations par annee</div>
+        <div id="dash-stats-annee"><div style="color:var(--ts);font-size:12px;text-align:center;padding:10px">Chargement...</div></div>
       </div>
       <div class="panel">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -579,6 +583,7 @@ var membres = [], contacts = [], reunions = [], alertes = [];
 var cotisations = [];
 var caisses = {};
 var curPage = "dashboard", curCat = "Tous", curAT = "Controle", curUser = null;
+var curFiltreAnnee = "", curFiltreStatut = "";
 var curAnneeFinance = "Toutes";
 var MO = ["jan","fev","mar","avr","mai","jun","jul","aou","sep","oct","nov","dec"];
 var DIC = {"Loi / Reglementation":"📜","Circulaire":"📋","Rapport de reunion":"📝","Guide pratique":"📗","Formulaire":"📄","Autre":"📁"};
@@ -725,45 +730,176 @@ function initMembres() {
 /* ══ DASHBOARD ══ */
 function rdash() {
   if (!membres.length) return;
-  var tot=membres.length, aj=membres.filter(function(m){return cotisStatus(m)==="ok";}).length;
-  var rt=membres.filter(function(m){return cotisStatus(m)==="retard";}).length;
-  var col=membres.reduce(function(s,m){return s+(m.verse||0);},0);
-  var att=membres.reduce(function(s,m){return s+(m.attendu||60000);},0);
-  var pct=att?Math.round(col/att*100):0;
-  document.getElementById("st-tot").textContent=tot;
-  document.getElementById("st-aj").textContent=aj;
-  document.getElementById("st-rt").textContent=rt;
-  document.getElementById("st-col").textContent=fmt(col);
-  document.getElementById("st-pct").textContent=Math.round(aj/tot*100)+"% du registre";
-  document.getElementById("taux-pct").textContent=pct+"%";
-  document.getElementById("taux-bar").style.width=pct+"%";
-  document.getElementById("taux-det").textContent=fmt(col)+" FCFA collectes sur "+fmt(att)+" FCFA";
-  var rts=membres.filter(function(m){return cotisStatus(m)==="retard";});
-  var html="";
-  if (!rts.length) html='<div style="color:var(--ts);font-size:13px;text-align:center;padding:10px">Aucun retard</div>';
-  else rts.slice(0,6).forEach(function(m){
-    html+='<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">';
-    html+='<div class="m-init" style="width:34px;height:34px;font-size:11px">'+ini(m.nom)+'</div>';
-    html+='<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+m.nom+'</div>';
-    html+='<div style="font-size:10px;color:var(--ts)">'+fmt((m.attendu||60000)-(m.verse||0))+' FCFA dus</div></div>';
-    if(m.tel) html+='<button class="btn btn-wa btn-sm" data-fid="'+m.fid+'" data-type="c">WA</button>';
-    html+='</div>';
+  var anneeActuelle = new Date().getFullYear().toString();
+
+  /* ── Calculs globaux depuis Firestore (toutes années) ── */
+  var tot = membres.length;
+  var col = membres.reduce(function(s,m){return s+(m.verse||0);},0);
+  var att = membres.reduce(function(s,m){return s+(m.attendu||60000);},0);
+
+  /* ── Calculs par année depuis COTIS_DATA ── */
+  function statsAnnee(annee) {
+    var yr = parseInt(annee);
+    var aj=0, pa=0, rt=0, collecte=0, attendu=0;
+    Object.keys(COTIS_DATA).forEach(function(nom){
+      var d = COTIS_DATA[nom][yr] || {verse:0,attendu:60000};
+      var v=d.verse||0, a=d.attendu||60000;
+      collecte += v; attendu += a;
+      if (v>=a && a>0) aj++;
+      else if (v>0) pa++;
+      else rt++;
+    });
+    return {aj:aj, pa:pa, rt:rt, collecte:collecte, attendu:attendu,
+            pct: attendu ? Math.round(collecte/attendu*100) : 0};
+  }
+
+  var s24 = statsAnnee("2024");
+  var s25 = statsAnnee("2025");
+  var s26 = statsAnnee("2026");
+  var sAll = {
+    aj:  s24.aj+s25.aj+s26.aj,
+    rt:  s24.rt+s25.rt+s26.rt,
+    pa:  s24.pa+s25.pa+s26.pa,
+    collecte: s24.collecte+s25.collecte+s26.collecte,
+    attendu:  s24.attendu+s25.attendu+s26.attendu,
+    pct: 0
+  };
+  sAll.pct = sAll.attendu ? Math.round(sAll.collecte/sAll.attendu*100) : 0;
+
+  /* ── Stats cards principales (année actuelle) ── */
+  var sCur = anneeActuelle==="2024"?s24:anneeActuelle==="2025"?s25:s26;
+  document.getElementById("st-tot").textContent = tot;
+  document.getElementById("st-aj").textContent = sCur.aj;
+  document.getElementById("st-rt").textContent = sCur.rt;
+  document.getElementById("st-col").textContent = fmt(sCur.collecte);
+  document.getElementById("st-pct").textContent = anneeActuelle + " — " + sCur.pct + "%";
+  document.getElementById("taux-pct").textContent = sAll.pct + "%";
+  document.getElementById("taux-bar").style.width = sAll.pct + "%";
+  document.getElementById("taux-det").textContent = fmt(sAll.collecte) + " FCFA collectes sur " + fmt(sAll.attendu) + " FCFA (toutes annees)";
+
+  /* ── Stats par année ── */
+  var statsHtml = "";
+  [["2024",s24],["2025",s25],["2026",s26]].forEach(function(item){
+    var a = item[0], s = item[1];
+    var barColor = s.pct>=80?"#27AE60":s.pct>=40?"#F39C12":"#E74C3C";
+    statsHtml += '<div style="margin-bottom:12px">';
+    statsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">';
+    statsHtml += '<span style="font-size:12px;font-weight:700;color:var(--or)">'+a+'</span>';
+    statsHtml += '<span style="font-family:DM Mono,monospace;font-size:11px;color:'+barColor+'">'+s.pct+'% — '+fmt(s.collecte)+' FCFA</span>';
+    statsHtml += '</div>';
+    statsHtml += '<div style="background:var(--gm);border-radius:4px;height:7px;overflow:hidden;margin-bottom:5px">';
+    statsHtml += '<div style="height:100%;width:'+s.pct+'%;background:linear-gradient(90deg,'+barColor+','+barColor+'aa);border-radius:4px;transition:width .5s"></div>';
+    statsHtml += '</div>';
+    statsHtml += '<div style="display:flex;gap:6px">';
+    statsHtml += '<span data-annee="'+a+'" data-statut="ok" class="dash-stat-btn" style="cursor:pointer;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;background:rgba(39,174,96,.15);color:#2ECC71;border:1px solid rgba(39,174,96,.3)">✅ '+s.aj+' a jour</span>';
+    statsHtml += '<span data-annee="'+a+'" data-statut="partiel" class="dash-stat-btn" style="cursor:pointer;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;background:rgba(230,126,34,.15);color:#F39C12;border:1px solid rgba(230,126,34,.3)">⚠️ '+s.pa+' partiel</span>';
+    statsHtml += '<span data-annee="'+a+'" data-statut="retard" class="dash-stat-btn" style="cursor:pointer;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;background:rgba(192,57,43,.15);color:#E74C3C;border:1px solid rgba(192,57,43,.3)">❌ '+s.rt+' retard</span>';
+    statsHtml += '</div></div>';
   });
-  if(rts.length>6) html+='<div style="text-align:center;font-size:11px;color:var(--ts);padding:8px">+' +(rts.length-6)+' autres...</div>';
-  document.getElementById("dash-rt").innerHTML=html;
+
+  /* Global */
+  statsHtml += '<div style="padding:10px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:10px;margin-top:4px">';
+  statsHtml += '<div style="display:flex;justify-content:space-between;margin-bottom:4px">';
+  statsHtml += '<span style="font-size:11px;font-weight:700;color:var(--or)">GLOBAL 2024-2026</span>';
+  statsHtml += '<span style="font-family:DM Mono,monospace;font-size:11px;color:var(--or)">'+sAll.pct+'%</span>';
+  statsHtml += '</div>';
+  statsHtml += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ts)">';
+  statsHtml += '<span>Collecte : <strong style="color:#2ECC71">'+fmt(sAll.collecte)+' F</strong></span>';
+  statsHtml += '<span>Reste : <strong style="color:#E74C3C">'+fmt(sAll.attendu-sAll.collecte)+' F</strong></span>';
+  statsHtml += '</div></div>';
+
+  document.getElementById("dash-stats-annee").innerHTML = statsHtml;
+  // Attacher les événements sur les badges cliquables
+  document.getElementById("dash-stats-annee").querySelectorAll(".dash-stat-btn").forEach(function(el){
+    el.addEventListener("click", function(){
+      goMembresAnnee(el.dataset.annee, el.dataset.statut);
+    });
+  });
+
+  /* ── Relances urgentes (membres en retard ANNEE ACTUELLE) ── */
+  var retardeurs = Object.keys(COTIS_DATA).filter(function(nom){
+    var d = COTIS_DATA[nom][parseInt(anneeActuelle)] || {verse:0,attendu:60000};
+    return (d.verse||0) < (d.attendu||60000);
+  });
+
+  var rdHtml = "";
+  if (!retardeurs.length) {
+    html2 = '<div style="color:var(--ts);font-size:13px;text-align:center;padding:10px">Tous a jour pour '+anneeActuelle+' !</div>';
+  } else {
+    retardeurs.slice(0,6).forEach(function(nom){
+      var d = COTIS_DATA[nom][parseInt(anneeActuelle)] || {verse:0,attendu:60000};
+      var reste = (d.attendu||60000)-(d.verse||0);
+      var membreObj = membres.find(function(x){return (x.nom||"").toUpperCase().includes(nom.toUpperCase().slice(0,8));});
+      rdHtml += '<div class="dash-mem-row" data-nom="'+encodeURIComponent(nom)+'" style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer">';
+      rdHtml += '<div class="m-init" style="width:34px;height:34px;font-size:11px;cursor:pointer">'+ini(nom)+'</div>';
+      rdHtml += '<div style="flex:1;min-width:0;cursor:pointer"><div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+nom+'</div>';
+      rdHtml += '<div style="font-size:10px;color:var(--ts)">'+fmt(reste)+' FCFA restants ('+anneeActuelle+')</div></div>';
+      if (membreObj && membreObj.tel) {
+        rdHtml += '<button class="btn btn-wa btn-sm" data-fid="'+membreObj.fid+'" data-type="c">WA</button>';
+      }
+      rdHtml += '</div>';
+    });
+    if (retardeurs.length > 6) rdHtml += '<div data-annee="'+anneeActuelle+'" data-statut="retard" class="dash-stat-btn" style="text-align:center;font-size:11px;color:var(--ts);padding:8px;cursor:pointer">Voir les '+(retardeurs.length-6)+' autres →</div>';
+  }
+  document.getElementById("dash-rt").innerHTML = rdHtml;
+  document.getElementById("dash-rt").querySelectorAll(".dash-mem-row").forEach(function(el){
+    el.addEventListener("click", function(){
+      var nom = decodeURIComponent(el.dataset.nom);
+      goMembreNom(nom);
+    });
+  });
+  document.getElementById("dash-rt").querySelectorAll(".dash-stat-btn").forEach(function(el){
+    el.addEventListener("click", function(){
+      goMembresAnnee(el.dataset.annee, el.dataset.statut);
+    });
+  });
   document.getElementById("dash-rt").querySelectorAll("button[data-fid]").forEach(function(btn){
-    btn.addEventListener("click",function(){waM(btn.dataset.fid,btn.dataset.type);});
+    btn.addEventListener("click",function(e){e.stopPropagation();waM(btn.dataset.fid,btn.dataset.type);});
   });
 }
+
+/* Aller vers membres filtrés par année et statut */
+function goMembresAnnee(annee, statut) {
+  curFiltreAnnee = annee;
+  curFiltreStatut = statut;
+  document.getElementById("sm").value = "";
+  gp("membres");
+}
+
+/* Aller vers un membre par nom */
+function goMembreNom(nom) {
+  var m = membres.find(function(x){return (x.nom||"").toUpperCase().includes(nom.toUpperCase().slice(0,8));});
+  if (m) { gp("membres"); setTimeout(function(){ ofiche(m.fid); }, 200); }
+  else gp("membres");
+}
+
 
 /* ══ MEMBRES PAGE ══ */
 function fm() {
   var q=(document.getElementById("sm").value||"").toLowerCase();
   var fc=document.getElementById("fcot").value;
+  // Utiliser filtre année si venant du dashboard
+  var filtreAnneeActive = curFiltreAnnee || "";
+  var filtreStatutActive = fc || curFiltreStatut || "";
+  // Réinitialiser après usage
+  if (curFiltreAnnee) { curFiltreAnnee = ""; curFiltreStatut = ""; }
+
   var f=membres.filter(function(m){
     var mq=!q||(m.nom||"").toLowerCase().includes(q)||(m.promoteur||"").toLowerCase().includes(q);
-    var st=cotisStatus(m);
-    var mc=!fc||(fc==="ok"&&st==="ok")||(fc==="retard"&&st==="retard")||(fc==="partiel"&&st==="partiel");
+    var st;
+    if (filtreAnneeActive) {
+      // Statut basé sur COTIS_DATA pour l'année choisie
+      var nomM = (m.nom||"").toUpperCase().trim();
+      var cleCotis = null;
+      Object.keys(COTIS_DATA).forEach(function(k){ if(k.toUpperCase().trim()===nomM) cleCotis=k; });
+      if (!cleCotis) Object.keys(COTIS_DATA).forEach(function(k){ if(!cleCotis&&(nomM.includes(k.toUpperCase().trim())||k.toUpperCase().trim().includes(nomM))) cleCotis=k; });
+      var d = cleCotis && COTIS_DATA[cleCotis][parseInt(filtreAnneeActive)] ? COTIS_DATA[cleCotis][parseInt(filtreAnneeActive)] : {verse:0,attendu:60000};
+      var v=d.verse||0, a=d.attendu||60000;
+      st = v>=a&&a>0?"ok":v>0?"partiel":"retard";
+    } else {
+      st = cotisStatus(m);
+    }
+    var mc=!filtreStatutActive||(filtreStatutActive==="ok"&&st==="ok")||(filtreStatutActive==="retard"&&st==="retard")||(filtreStatutActive==="partiel"&&st==="partiel");
     return mq&&mc;
   });
   var html="";
@@ -796,16 +932,16 @@ function ofiche(fid) {
   var st=cotisStatus(m);
 
   // Chercher dans COTIS_DATA — correspondance flexible
-  var nomM = (m.nom||"").toUpperCase().replace(/[\s\-\']/g," ").trim();
+  var nomM = (m.nom||"").toUpperCase().replace(/[\s\-]/g," ").trim();
   var cleCotis = null;
   // 1. Exacte
   Object.keys(COTIS_DATA).forEach(function(k){
-    if (k.toUpperCase().replace(/[\s\-\']/g," ").trim() === nomM) cleCotis = k;
+    if (k.toUpperCase().replace(/[\s\-]/g," ").trim() === nomM) cleCotis = k;
   });
   // 2. Partielle
   if (!cleCotis) {
     Object.keys(COTIS_DATA).forEach(function(k){
-      var kn = k.toUpperCase().replace(/[\s\-\']/g," ").trim();
+      var kn = k.toUpperCase().replace(/[\s\-]/g," ").trim();
       if (!cleCotis && (nomM.includes(kn) || kn.includes(nomM))) cleCotis = k;
     });
   }
@@ -814,7 +950,7 @@ function ofiche(fid) {
     var mots = nomM.split(" ").filter(function(w){return w.length>2;});
     var bestScore = 0, bestKey = null;
     Object.keys(COTIS_DATA).forEach(function(k){
-      var kn = k.toUpperCase().replace(/[\s\-\']/g," ").trim();
+      var kn = k.toUpperCase().replace(/[\s\-]/g," ").trim();
       var score = mots.filter(function(w){return kn.includes(w);}).length;
       if (score > bestScore) { bestScore=score; bestKey=k; }
     });
@@ -846,51 +982,51 @@ function ofiche(fid) {
     anneesCotisHtml = '<div style="padding:8px 10px;font-size:12px;color:var(--ts)">Verse : '+Number(sv).toLocaleString("fr-FR")+' FCFA &nbsp;|&nbsp; Reste : '+Number(sa-sv).toLocaleString("fr-FR")+' FCFA</div>';
   }
 
-  var html='';
+  var htmlF='';
   // En-tête membre
-  html+='<div style="display:flex;gap:13px;align-items:center;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gb)">';
-  html+='<div class="m-init" style="width:52px;height:52px;font-size:16px;border-radius:12px">'+ini(m.nom)+'</div>';
-  html+='<div style="flex:1;min-width:0">';
-  html+='<div style="font-family:Playfair Display,serif;font-size:16px;font-weight:700;color:var(--blanc);margin-bottom:3px">'+m.nom+'</div>';
-  html+='<div style="font-size:12px;color:var(--ts);margin-bottom:6px">'+(m.promoteur||"—")+'</div>';
+  htmlF+='<div style="display:flex;gap:13px;align-items:center;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gb)">';
+  htmlF+='<div class="m-init" style="width:52px;height:52px;font-size:16px;border-radius:12px">'+ini(m.nom)+'</div>';
+  htmlF+='<div style="flex:1;min-width:0">';
+  htmlF+='<div style="font-family:Playfair Display,serif;font-size:16px;font-weight:700;color:var(--blanc);margin-bottom:3px">'+m.nom+'</div>';
+  htmlF+='<div style="font-size:12px;color:var(--ts);margin-bottom:6px">'+(m.promoteur||"—")+'</div>';
   html+=cotisLabel(m);
-  html+='</div></div>';
+  htmlF+='</div></div>';
 
   // Historique cotisations par année
-  html+='<div style="background:var(--gm);border-radius:10px;margin-bottom:14px;overflow:hidden">';
-  html+='<div style="padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ts);border-bottom:1px solid var(--gb)">Historique des cotisations par annee</div>';
+  htmlF+='<div style="background:var(--gm);border-radius:10px;margin-bottom:14px;overflow:hidden">';
+  htmlF+='<div style="padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ts);border-bottom:1px solid var(--gb)">Historique des cotisations par annee</div>';
   html+=anneesCotisHtml;
-  html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(201,168,76,.08);border-top:1px solid rgba(201,168,76,.2)">';
-  html+='<span style="font-size:12px;font-weight:700;color:var(--blanc)">Total verse</span>';
-  html+='<span style="font-family:DM Mono,monospace;font-size:13px;font-weight:700;color:#2ECC71">'+Number(totalVerseTous).toLocaleString("fr-FR")+' FCFA</span>';
-  html+='</div>';
-  html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(201,168,76,.05)">';
-  html+='<span style="font-size:12px;font-weight:700;color:var(--blanc)">Solde global du</span>';
-  html+='<span style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:'+(totalDuTous>0?"#E74C3C":"#2ECC71")+'">'+Number(totalDuTous).toLocaleString("fr-FR")+' FCFA</span>';
-  html+='</div>';
-  html+='</div>';
+  htmlF+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(201,168,76,.08);border-top:1px solid rgba(201,168,76,.2)">';
+  htmlF+='<span style="font-size:12px;font-weight:700;color:var(--blanc)">Total verse</span>';
+  htmlF+='<span style="font-family:DM Mono,monospace;font-size:13px;font-weight:700;color:#2ECC71">'+Number(totalVerseTous).toLocaleString("fr-FR")+' FCFA</span>';
+  htmlF+='</div>';
+  htmlF+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(201,168,76,.05)">';
+  htmlF+='<span style="font-size:12px;font-weight:700;color:var(--blanc)">Solde global du</span>';
+  htmlF+='<span style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:'+(totalDuTous>0?"#E74C3C":"#2ECC71")+'">'+Number(totalDuTous).toLocaleString("fr-FR")+' FCFA</span>';
+  htmlF+='</div>';
+  htmlF+='</div>';
 
   // Infos contact
-  html+='<div class="di-row">';
-  html+='<div class="di"><div class="di-l">Telephone</div><div class="di-v" style="color:var(--bleu)">'+(m.tel||"—")+'</div></div>';
-  html+='<div class="di"><div class="di-l">Reference</div><div class="di-v">'+m.fid+'</div></div>';
+  htmlF+='<div class="di-row">';
+  htmlF+='<div class="di"><div class="di-l">Telephone</div><div class="di-v" style="color:var(--bleu)">'+(m.tel||"—")+'</div></div>';
+  htmlF+='<div class="di"><div class="di-l">Reference</div><div class="di-v">'+m.fid+'</div></div>';
   var carteStatutLabel = m.carteStatut==="oui"?'<span style="color:#2ECC71;font-weight:700">✅ Delivree</span>':m.carteStatut==="attente"?'<span style="color:#F39C12;font-weight:700">⏳ En attente</span>':'<span style="color:#E74C3C">❌ Pas de carte</span>';
-  html+='<div class="di"><div class="di-l">Carte membre</div><div class="di-v">'+(m.carte||"—")+'</div></div>';
-  html+='<div class="di"><div class="di-l">Statut carte</div><div class="di-v">'+carteStatutLabel+'</div></div>';
+  htmlF+='<div class="di"><div class="di-l">Carte membre</div><div class="di-v">'+(m.carte||"—")+'</div></div>';
+  htmlF+='<div class="di"><div class="di-l">Statut carte</div><div class="di-v">'+carteStatutLabel+'</div></div>';
   if(m.notes) html+='<div class="di full"><div class="di-l">Notes</div><div class="di-v">'+m.notes+'</div></div>';
-  html+='</div>';
+  htmlF+='</div>';
 
   // Boutons d'action
-  html+='<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">';
+  htmlF+='<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">';
   if(m.tel) html+='<a href="tel:'+m.tel+'" class="btn btn-call btn-full">📞 Appeler '+m.tel+'</a>';
   if(m.tel) html+='<button class="btn btn-wa btn-full" id="wa-simple-btn">💬 WhatsApp simple</button>';
   if(m.tel) html+='<button class="btn btn-danger btn-full" id="notif-cotis-btn">📋 Envoyer releve cotisations (WA)</button>';
-  html+='<button class="btn btn-or btn-full" id="carte-btn" style="background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.1));color:var(--or);border:1px solid rgba(201,168,76,.4)">🪪 Generer carte membre</button>';
-    html+='<button class="btn btn-ghost btn-full" id="edit-cotis-btn">✏️ Modifier le versement (Firestore)</button>';
-  html+='<button class="btn btn-edit btn-full" id="edit-membre-btn">📝 Modifier nom / telephone</button>';
-  html+='</div>';
+  htmlF+='<button class="btn btn-or btn-full" id="carte-btn" style="background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(201,168,76,.1));color:var(--or);border:1px solid rgba(201,168,76,.4)">🪪 Generer carte membre</button>';
+    htmlF+='<button class="btn btn-ghost btn-full" id="edit-cotis-btn">✏️ Modifier le versement (Firestore)</button>';
+  htmlF+='<button class="btn btn-edit btn-full" id="edit-membre-btn">📝 Modifier nom / telephone</button>';
+  htmlF+='</div>';
 
-  document.getElementById("sh-m-body").innerHTML=html;
+  document.getElementById("sh-m-body").innerHTML=htmlF;
 
   // WA simple
   var waSimple = document.getElementById("wa-simple-btn");
@@ -1752,10 +1888,11 @@ document.getElementById("save-mouv").addEventListener("click", function(){
 
 /* Raccourci depuis dashboard vers membres avec filtre */
 function goMembres(filtre) {
+  curFiltreAnnee = "";
+  curFiltreStatut = filtre;
   document.getElementById("fcot").value = filtre;
   document.getElementById("sm").value = "";
   gp("membres");
-  document.getElementById("nav-membres").classList.add("active");
 }
 
 function gp(page) {
