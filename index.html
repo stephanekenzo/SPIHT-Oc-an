@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SPIHT Ocean Bureau Syndical</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--or:#C9A84C;--or-light:#E8C96D;--or-dark:#9A7A2E;--noir:#0D0D0D;--gf:#1A1A1A;--gm:#2A2A2A;--gp:#222;--gb:#333;--blanc:#F5F0E8;--rouge:#C0392B;--vert:#27AE60;--bleu:#2980B9;--ts:#888;--tt:#555;}
@@ -137,6 +138,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--gb);border-radius:3px;}
+/* ══ BLACKLIST CSS ══ */
+.bl-search{background:var(--gm);border:1px solid var(--gb);border-radius:9px;padding:10px 14px;color:var(--blanc);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;margin-bottom:14px;}
+.bl-search:focus{border-color:var(--rouge);}
+.bl-search::placeholder{color:var(--tt);}
+.bl-card{background:var(--gp);border:1px solid var(--gb);border-radius:12px;padding:14px;margin-bottom:10px;border-left:3px solid var(--rouge);}
+.bl-card-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;}
+.bl-avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#3a1515,#2a1010);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#E74C3C;border:1px solid rgba(192,57,43,.3);flex-shrink:0;}
+.bl-nom{font-size:14px;font-weight:700;color:var(--blanc);margin-bottom:2px;}
+.bl-poste{font-size:11px;color:var(--ts);}
+.bl-faute-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(192,57,43,.15);color:#E74C3C;border:1px solid rgba(192,57,43,.3);margin-top:4px;}
+.bl-detail{font-size:12px;color:var(--ts);line-height:1.6;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);}
+.bl-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--tt);margin-top:8px;}
+.bl-pending-badge{background:rgba(230,126,34,.15);color:#F39C12;border:1px solid rgba(230,126,34,.3);padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.bl-empty{text-align:center;padding:40px 20px;color:var(--ts);}
+.bl-empty-ico{font-size:40px;margin-bottom:12px;opacity:.4;}
+.bl-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.bl-tab{flex:1;padding:9px;border-radius:9px;border:1px solid var(--gb);background:var(--gm);color:var(--ts);font-size:11px;font-weight:700;cursor:pointer;text-align:center;font-family:'DM Sans',sans-serif;}
+.bl-tab.on{border-color:var(--rouge);background:rgba(192,57,43,.1);color:#E74C3C;}
+.bl-tab-count{display:inline-block;background:rgba(255,255,255,.1);padding:1px 6px;border-radius:10px;margin-left:4px;font-size:9px;}
+
 /* ══ RAPPORTS CSS ══ */
 .rp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
 .rp-card{background:var(--gp);border:1px solid var(--gb);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .2s;text-align:center;}
@@ -188,6 +209,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
 .resume-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);}
 .resume-row:last-child{border-bottom:none;}
 .btn-add-small{padding:4px 10px;font-size:10px;border-radius:6px;background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.3);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;}
+
+/* ══ IMPORT CSS ══ */
+.imp-dropzone{border:2px dashed var(--gb);border-radius:12px;padding:30px 20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px;}
+.imp-dropzone:hover,.imp-dropzone.dragover{border-color:var(--or);background:rgba(201,168,76,.05);}
+.imp-dropzone-ico{font-size:36px;margin-bottom:10px;opacity:.6;}
+.imp-dropzone-text{font-size:13px;color:var(--blanc);font-weight:600;margin-bottom:4px;}
+.imp-dropzone-sub{font-size:11px;color:var(--ts);}
+.imp-preview{background:var(--gm);border-radius:10px;padding:12px;margin-bottom:12px;max-height:260px;overflow-y:auto;}
+.imp-preview-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px;}
+.imp-preview-row:last-child{border-bottom:none;}
+.imp-preview-nom{color:var(--blanc);font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.imp-preview-val{color:var(--or);font-family:'DM Mono',monospace;font-size:10px;white-space:nowrap;margin-left:8px;}
+.imp-file-chip{display:flex;align-items:center;gap:10px;background:var(--gm);border-radius:8px;padding:10px 12px;margin-bottom:12px;}
+.imp-file-ico{font-size:20px;}
+.imp-file-name{flex:1;font-size:12px;color:var(--blanc);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.imp-file-remove{background:none;border:none;color:var(--rouge);font-size:16px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -308,7 +345,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
       <div class="fin-card">
         <div class="fin-card-title">
           <span id="fin-titre-tableau">Cotisations — Toutes les annees</span>
-          <button class="btn-add-small" id="btn-add-cotis">+ Ajouter versement</button>
+          <div style="display:flex;gap:6px">
+            <button class="btn-add-small" id="btn-import-fichier" style="background:rgba(41,128,185,.15);color:#5DADE2;border-color:rgba(41,128,185,.3)">📥 Importer</button>
+            <button class="btn-add-small" id="btn-add-cotis">+ Ajouter versement</button>
+          </div>
         </div>
         <div style="overflow-x:auto;">
           <table class="ftbl">
@@ -383,6 +423,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
         </div>
       </div>
     </div>
+
+    <!-- BLACKLIST RH -->
+    <div class="page" id="page-blacklist">
+      <input class="bl-search" id="bl-srch" placeholder="Rechercher un nom avant recrutement...">
+      <div class="bl-tabs">
+        <div class="bl-tab on" id="bl-tab-validees" data-tab="validees">✅ Validées <span class="bl-tab-count" id="bl-count-val">0</span></div>
+        <div class="bl-tab" id="bl-tab-attente" data-tab="attente">⏳ En attente <span class="bl-tab-count" id="bl-count-att">0</span></div>
+      </div>
+      <div id="bl-list"><div class="bl-empty"><div class="bl-empty-ico">🚫</div>Chargement...</div></div>
+    </div>
   </div><!-- /content -->
 
   <nav class="bottom-nav">
@@ -393,6 +443,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
     <button class="bn-item" id="nav-rapports"><span class="bn-ic">📊</span><span>Rapports</span></button>
     <button class="bn-item" id="nav-reunions"><span class="bn-ic">📅</span><span>Agenda</span></button>
     <button class="bn-item" id="nav-alertes"><span class="bn-ic">🔔</span><span>Alertes</span></button>
+    <button class="bn-item" id="nav-blacklist"><span class="bn-ic">🚫</span><span>Blacklist</span><span class="bn-badge" id="bdg-bl">0</span></button>
   </nav>
 </div>
 
@@ -559,12 +610,68 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
   <div class="sheet-footer"><button class="btn btn-ghost" id="cancel-mouv">Annuler</button><button class="btn btn-primary" id="save-mouv" style="flex:1;justify-content:center">Enregistrer</button></div>
 </div></div>
 
+
+<!-- Sheet ajouter signalement blacklist -->
+<div class="sheet-ov" id="sh-bl"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><div class="sheet-title">Signaler un employe</div><button class="sheet-close" id="close-sh-bl">✕</button></div>
+  <div class="sheet-body"><div class="fg">
+    <div style="background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.3);border-radius:8px;padding:10px 12px;font-size:11px;color:#F39C12;margin-bottom:4px">⏳ Ce signalement sera visible par tous les membres uniquement apres validation du Bureau.</div>
+    <div class="fgp"><label class="flbl">Nom complet *</label><input class="finp" id="bl-nom" placeholder="NOM Prenom"></div>
+    <div class="fgp"><label class="flbl">Poste occupe</label><input class="finp" id="bl-poste" placeholder="ex : Receptionniste, Cuisinier..."></div>
+    <div class="fgp"><label class="flbl">Etablissement concerne *</label><input class="finp" id="bl-etab" placeholder="Nom de l'hotel/restaurant"></div>
+    <div class="fgp"><label class="flbl">Type de faute *</label>
+      <select class="fsel2" id="bl-type">
+        <option value="Vol">Vol</option>
+        <option value="Agression">Agression</option>
+        <option value="Abandon de poste">Abandon de poste</option>
+        <option value="Fraude">Fraude</option>
+        <option value="Harcelement">Harcelement</option>
+        <option value="Faute grave">Faute grave</option>
+        <option value="Autre">Autre</option>
+      </select>
+    </div>
+    <div class="fgp"><label class="flbl">Description</label><textarea class="fta" id="bl-desc" rows="3" placeholder="Details des faits (optionnel)"></textarea></div>
+    <div class="fgp"><label class="flbl">Date approximative</label><input type="date" class="finp" id="bl-date"></div>
+  </div></div>
+  <div class="sheet-footer"><button class="btn btn-ghost" id="cancel-bl">Annuler</button><button class="btn btn-danger" id="save-bl" style="flex:1;justify-content:center">Soumettre au Bureau</button></div>
+</div></div>
+
+
+<!-- Sheet import fichier cotisations -->
+<div class="sheet-ov" id="sh-import"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><div class="sheet-title">Importer les cotisations</div><button class="sheet-close" id="close-sh-import">✕</button></div>
+  <div class="sheet-body">
+    <div style="background:rgba(41,128,185,.1);border:1px solid rgba(41,128,185,.3);border-radius:8px;padding:10px 12px;font-size:11px;color:#5DADE2;margin-bottom:14px;line-height:1.6">
+      📊 <strong>Fichier Excel/CSV</strong> : colonnes attendues — Nom, Annee, Verse, Attendu<br>
+      📄 <strong>Fichier PDF</strong> : sera archive comme document de reference (pas d'extraction automatique des montants)
+    </div>
+
+    <button class="btn btn-ghost btn-full" id="btn-download-modele" style="margin-bottom:14px">⬇️ Telecharger le modele CSV</button>
+
+    <input type="file" id="import-file-input" accept=".csv,.xlsx,.xls,.pdf" style="display:none">
+    <div class="imp-dropzone" id="imp-dropzone">
+      <div class="imp-dropzone-ico">📁</div>
+      <div class="imp-dropzone-text">Cliquez pour choisir un fichier</div>
+      <div class="imp-dropzone-sub">CSV, Excel (.xlsx) ou PDF</div>
+    </div>
+
+    <div id="imp-file-chip-zone"></div>
+    <div id="imp-preview-zone"></div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btn btn-ghost" id="cancel-import">Annuler</button>
+    <button class="btn btn-primary" id="confirm-import" style="flex:1;justify-content:center" disabled>Confirmer l'import</button>
+  </div>
+</div></div>
+
 <div class="toast" id="toast"><span id="t-ic">ok</span>&nbsp;<span id="t-msg"></span></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, addDoc, updateDoc, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD9oGbmkJg3mvlPn9kPoWjltKimerrYJt4",
@@ -662,6 +769,7 @@ function initData() {
   initAlertes();
   initActivites();
   initFinances();
+  initBlacklist();
 }
 
 /* ══ MEMBRES FIRESTORE ══ */
@@ -1912,9 +2020,10 @@ function gp(page) {
   if (page==="alertes") ral();
   if (page==="finances") renderFinances();
   if (page==="rapports") initRapports();
+  if (page==="blacklist") rbl();
 }
 
-["dashboard","membres","contacts","finances","reunions","alertes","rapports"].forEach(function(page){
+["dashboard","membres","contacts","finances","reunions","alertes","rapports","blacklist"].forEach(function(page){
   var el = document.getElementById("nav-"+page);
   if (el) el.addEventListener("click",function(){gp(page);});
 });
@@ -1923,6 +2032,7 @@ document.getElementById("fab").addEventListener("click",function(){
   if (curPage==="membres") os("sh-am");
   else if (curPage==="contacts") os("sh-nc");
   else if (curPage==="reunions") os("sh-ar");
+  else if (curPage==="blacklist") os("sh-bl");
   else if (curPage==="documents") showToast("Ajout de documents bientot disponible");
 });
 
@@ -2476,6 +2586,330 @@ function genCarteMembre(fid) {
   showToast("Carte membre generee !");
   logAct("Carte membre : " + m.nom, "or");
 }
+
+/* ══════════════════════════════════════════════════
+   MODULE BLACKLIST RH — Validation Bureau
+══════════════════════════════════════════════════ */
+
+var blacklist = [];
+var curBlTab = "validees";
+
+function initBlacklist() {
+  onSnapshot(collection(db,"blacklist"), function(snap) {
+    blacklist = snap.docs.map(function(d) { return Object.assign({}, d.data(), {bid: d.id}); });
+    blacklist.sort(function(a,b){
+      var ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate() : new Date(0);
+      var tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate() : new Date(0);
+      return tb - ta;
+    });
+    var enAttente = blacklist.filter(function(b){return b.statut==="attente";}).length;
+    var bdg = document.getElementById("bdg-bl");
+    if (bdg) { bdg.textContent = enAttente; bdg.style.display = enAttente>0 ? "block" : "none"; }
+    if (curPage === "blacklist") rbl();
+  });
+}
+
+function rbl() {
+  var q = (document.getElementById("bl-srch").value || "").toLowerCase();
+  var validees = blacklist.filter(function(b){return b.statut==="validee";});
+  var attente = blacklist.filter(function(b){return b.statut==="attente";});
+
+  document.getElementById("bl-count-val").textContent = validees.length;
+  document.getElementById("bl-count-att").textContent = attente.length;
+
+  var liste = curBlTab === "validees" ? validees : attente;
+  if (q) {
+    liste = liste.filter(function(b){
+      return (b.nom||"").toLowerCase().includes(q) || (b.etablissement||"").toLowerCase().includes(q);
+    });
+  }
+
+  var d2t = function(ts){ return ts && ts.toDate ? ts.toDate().toLocaleDateString("fr-FR") : ts || "—"; };
+
+  var html = "";
+  if (!liste.length) {
+    html = '<div class="bl-empty"><div class="bl-empty-ico">' + (curBlTab==="validees"?"🔍":"⏳") + '</div>';
+    html += curBlTab === "validees"
+      ? (q ? "Aucun resultat pour cette recherche" : "Aucun employe blackliste pour le moment")
+      : "Aucun signalement en attente de validation";
+    html += '</div>';
+  } else {
+    liste.forEach(function(b) {
+      html += '<div class="bl-card">';
+      html += '<div class="bl-card-head">';
+      html += '<div class="bl-avatar">' + ini(b.nom) + '</div>';
+      html += '<div style="flex:1;min-width:0">';
+      html += '<div class="bl-nom">' + b.nom + '</div>';
+      html += '<div class="bl-poste">' + (b.poste || "Poste non precise") + ' — ' + b.etablissement + '</div>';
+      html += '<div class="bl-faute-badge">⚠️ ' + b.typeFaute + '</div>';
+      if (b.statut === "attente") html += ' <span class="bl-pending-badge">⏳ En attente</span>';
+      html += '</div></div>';
+      if (b.description) html += '<div class="bl-detail">' + b.description + '</div>';
+      html += '<div class="bl-meta">';
+      html += '<span>Signale par : ' + (b.signalePar || "—") + '</span>';
+      html += '<span>' + (b.dateFaute ? new Date(b.dateFaute).toLocaleDateString("fr-FR") : d2t(b.createdAt)) + '</span>';
+      html += '</div>';
+      if (b.statut === "attente") {
+        html += '<div style="display:flex;gap:8px;margin-top:10px">';
+        html += '<button class="btn btn-danger btn-sm" style="flex:1;justify-content:center" data-bid="' + b.bid + '" data-action="valider">✅ Valider</button>';
+        html += '<button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" data-bid="' + b.bid + '" data-action="rejeter">❌ Rejeter</button>';
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+  }
+
+  document.getElementById("bl-list").innerHTML = html;
+
+  document.getElementById("bl-list").querySelectorAll("button[data-bid]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var bid = btn.dataset.bid;
+      var action = btn.dataset.action;
+      if (action === "valider") validerBlacklist(bid);
+      else rejeterBlacklist(bid);
+    });
+  });
+}
+
+function validerBlacklist(bid) {
+  syncDot("loading");
+  updateDoc(doc(db, "blacklist", bid), {
+    statut: "validee",
+    valideePar: curUser ? curUser.email : "bureau",
+    valideeAt: serverTimestamp()
+  }).then(function() {
+    showToast("Signalement valide — visible par tous les membres");
+    logAct("Blacklist validee", "rouge");
+  }).catch(function(e) { showToast("Erreur : " + e.message); });
+}
+
+function rejeterBlacklist(bid) {
+  if (!confirm("Rejeter et supprimer ce signalement ?")) return;
+  syncDot("loading");
+  deleteDoc(doc(db, "blacklist", bid)).then(function() {
+    showToast("Signalement rejete et supprime");
+  }).catch(function(e) { showToast("Erreur : " + e.message); });
+}
+
+document.getElementById("bl-srch").addEventListener("input", rbl);
+
+document.getElementById("bl-tab-validees").addEventListener("click", function(){
+  curBlTab = "validees";
+  document.getElementById("bl-tab-validees").classList.add("on");
+  document.getElementById("bl-tab-attente").classList.remove("on");
+  rbl();
+});
+document.getElementById("bl-tab-attente").addEventListener("click", function(){
+  curBlTab = "attente";
+  document.getElementById("bl-tab-attente").classList.add("on");
+  document.getElementById("bl-tab-validees").classList.remove("on");
+  rbl();
+});
+
+document.getElementById("save-bl").addEventListener("click", function() {
+  var nom = document.getElementById("bl-nom").value.trim();
+  var etab = document.getElementById("bl-etab").value.trim();
+  if (!nom || !etab) { showToast("Nom et etablissement requis"); return; }
+  syncDot("loading");
+  addDoc(collection(db, "blacklist"), {
+    nom: nom.toUpperCase(),
+    poste: document.getElementById("bl-poste").value.trim(),
+    etablissement: etab,
+    typeFaute: document.getElementById("bl-type").value,
+    description: document.getElementById("bl-desc").value.trim(),
+    dateFaute: document.getElementById("bl-date").value,
+    statut: "attente",
+    signalePar: curUser ? curUser.email : "bureau",
+    createdAt: serverTimestamp()
+  }).then(function() {
+    cs("sh-bl");
+    ["bl-nom","bl-poste","bl-etab","bl-desc","bl-date"].forEach(function(id){ document.getElementById(id).value = ""; });
+    showToast("Signalement soumis au Bureau pour validation");
+    logAct("Nouveau signalement blacklist soumis", "or");
+  }).catch(function(e) { showToast("Erreur : " + e.message); });
+});
+
+document.getElementById("close-sh-bl").addEventListener("click", function(){ cs("sh-bl"); });
+document.getElementById("cancel-bl").addEventListener("click", function(){ cs("sh-bl"); });
+document.getElementById("sh-bl").addEventListener("click", function(e){ if (e.target === this) cs("sh-bl"); });
+
+
+/* ══════════════════════════════════════════════════
+   MODULE IMPORT — CSV / EXCEL / PDF pour cotisations
+══════════════════════════════════════════════════ */
+
+var impParsedData = null; // Données parsées en attente de confirmation
+var impFileType = null;   // 'csv', 'xlsx', 'pdf'
+
+document.getElementById("btn-import-fichier").addEventListener("click", function(){
+  impParsedData = null;
+  impFileType = null;
+  document.getElementById("imp-file-chip-zone").innerHTML = "";
+  document.getElementById("imp-preview-zone").innerHTML = "";
+  document.getElementById("confirm-import").disabled = true;
+  os("sh-import");
+});
+
+document.getElementById("close-sh-import").addEventListener("click", function(){ cs("sh-import"); });
+document.getElementById("cancel-import").addEventListener("click", function(){ cs("sh-import"); });
+document.getElementById("sh-import").addEventListener("click", function(e){ if(e.target===this) cs("sh-import"); });
+
+/* Télécharger un modèle CSV */
+document.getElementById("btn-download-modele").addEventListener("click", function(){
+  var csv = "Nom,Annee,Verse,Attendu\n";
+  Object.keys(COTIS_DATA).slice(0,5).forEach(function(nom){
+    var d = COTIS_DATA[nom][2026] || {verse:0,attendu:60000};
+    csv += '"' + nom + '",2026,' + (d.verse||0) + ',' + (d.attendu||60000) + "\n";
+  });
+  csv += '"NOUVEAU ETABLISSEMENT",2026,0,60000\n';
+  var blob = new Blob(["\uFEFF" + csv], {type: "text/csv;charset=utf-8"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = "Modele_Cotisations_SPIHT.csv";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);}, 2000);
+});
+
+/* Dropzone */
+var impDropzone = document.getElementById("imp-dropzone");
+var impFileInput = document.getElementById("import-file-input");
+
+impDropzone.addEventListener("click", function(){ impFileInput.click(); });
+impDropzone.addEventListener("dragover", function(e){ e.preventDefault(); impDropzone.classList.add("dragover"); });
+impDropzone.addEventListener("dragleave", function(){ impDropzone.classList.remove("dragover"); });
+impDropzone.addEventListener("drop", function(e){
+  e.preventDefault();
+  impDropzone.classList.remove("dragover");
+  if (e.dataTransfer.files.length) handleImportFile(e.dataTransfer.files[0]);
+});
+impFileInput.addEventListener("change", function(e){
+  if (e.target.files.length) handleImportFile(e.target.files[0]);
+});
+
+function handleImportFile(file) {
+  var ext = file.name.split(".").pop().toLowerCase();
+  var chipHtml = '<div class="imp-file-chip">';
+  chipHtml += '<div class="imp-file-ico">' + (ext==="pdf"?"📄":ext==="csv"?"📊":"📈") + '</div>';
+  chipHtml += '<div class="imp-file-name">' + file.name + '</div>';
+  chipHtml += '<button class="imp-file-remove" id="imp-remove-btn">✕</button>';
+  chipHtml += '</div>';
+  document.getElementById("imp-file-chip-zone").innerHTML = chipHtml;
+  document.getElementById("imp-remove-btn").addEventListener("click", function(){
+    impParsedData = null;
+    document.getElementById("imp-file-chip-zone").innerHTML = "";
+    document.getElementById("imp-preview-zone").innerHTML = "";
+    document.getElementById("confirm-import").disabled = true;
+  });
+
+  if (ext === "csv") {
+    impFileType = "csv";
+    var reader = new FileReader();
+    reader.onload = function(e) { parseCsvImport(e.target.result); };
+    reader.readAsText(file, "UTF-8");
+  } else if (ext === "xlsx" || ext === "xls") {
+    impFileType = "xlsx";
+    var reader2 = new FileReader();
+    reader2.onload = function(e) {
+      try {
+        var data = new Uint8Array(e.target.result);
+        var wb = XLSX.read(data, {type: "array"});
+        var sheet = wb.Sheets[wb.SheetNames[0]];
+        var rows = XLSX.utils.sheet_to_json(sheet, {defval: ""});
+        parseRowsImport(rows);
+      } catch(err) {
+        showToast("Erreur lecture Excel : " + err.message);
+      }
+    };
+    reader2.readAsArrayBuffer(file);
+  } else if (ext === "pdf") {
+    impFileType = "pdf";
+    // Archivage simple — pas d'extraction, juste stocké comme document de référence
+    document.getElementById("imp-preview-zone").innerHTML =
+      '<div class="imp-preview"><div style="text-align:center;padding:16px;color:var(--ts);font-size:12px">📄 Ce PDF sera archive comme document de reference dans les Rapports.<br>Les montants ne seront PAS extraits automatiquement — utilisez CSV/Excel pour la mise a jour des cotisations.</div></div>';
+    impParsedData = {type: "pdf", file: file};
+    document.getElementById("confirm-import").disabled = false;
+  } else {
+    showToast("Format non supporte. Utilisez CSV, XLSX ou PDF.");
+  }
+}
+
+function parseCsvImport(text) {
+  var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
+  if (lines.length < 2) { showToast("Fichier CSV vide ou invalide"); return; }
+  var headers = lines[0].split(",").map(function(h){ return h.replace(/"/g,"").trim().toLowerCase(); });
+  var rows = [];
+  for (var i=1; i<lines.length; i++) {
+    var cols = lines[i].split(",").map(function(c){ return c.replace(/"/g,"").trim(); });
+    var row = {};
+    headers.forEach(function(h,idx){ row[h] = cols[idx] || ""; });
+    rows.push(row);
+  }
+  parseRowsImport(rows);
+}
+
+function parseRowsImport(rows) {
+  var parsed = [];
+  rows.forEach(function(row) {
+    // Normaliser les clés (insensible à la casse)
+    var norm = {};
+    Object.keys(row).forEach(function(k){ norm[k.toLowerCase().trim()] = row[k]; });
+    var nom = (norm["nom"] || norm["etablissement"] || norm["nom etablissement"] || "").toString().trim();
+    var annee = parseInt(norm["annee"] || norm["année"] || 2026);
+    var verse = parseInt(norm["verse"] || norm["versé"] || norm["montant verse"] || 0) || 0;
+    var attendu = parseInt(norm["attendu"] || norm["montant attendu"] || 60000) || 60000;
+    if (nom) parsed.push({nom: nom.toUpperCase(), annee: annee, verse: verse, attendu: attendu});
+  });
+
+  if (!parsed.length) { showToast("Aucune donnee valide trouvee dans le fichier"); return; }
+
+  impParsedData = {type: "cotisations", rows: parsed};
+
+  var previewHtml = '<div class="imp-preview">';
+  previewHtml += '<div style="font-size:10px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">' + parsed.length + ' ligne(s) detectee(s)</div>';
+  parsed.slice(0,15).forEach(function(r) {
+    previewHtml += '<div class="imp-preview-row"><span class="imp-preview-nom">' + r.nom + '</span><span class="imp-preview-val">' + r.annee + ' — ' + Number(r.verse).toLocaleString("fr-FR") + '/' + Number(r.attendu).toLocaleString("fr-FR") + ' F</span></div>';
+  });
+  if (parsed.length > 15) previewHtml += '<div style="text-align:center;font-size:10px;color:var(--ts);padding:6px">+ ' + (parsed.length-15) + ' autres lignes...</div>';
+  previewHtml += '</div>';
+  document.getElementById("imp-preview-zone").innerHTML = previewHtml;
+  document.getElementById("confirm-import").disabled = false;
+}
+
+document.getElementById("confirm-import").addEventListener("click", function(){
+  if (!impParsedData) return;
+
+  if (impParsedData.type === "pdf") {
+    // Archiver le PDF comme document — juste log + toast (pas d'extraction)
+    showToast("Document PDF archive comme reference");
+    logAct("Document PDF importe (archive)", "bleu");
+    cs("sh-import");
+    return;
+  }
+
+  if (impParsedData.type === "cotisations") {
+    syncDot("loading");
+    var rows = impParsedData.rows;
+    var batch = [];
+    rows.forEach(function(r) {
+      if (!COTIS_DATA[r.nom]) COTIS_DATA[r.nom] = {2024:{verse:0,attendu:60000},2025:{verse:0,attendu:60000},2026:{verse:0,attendu:60000}};
+      COTIS_DATA[r.nom][r.annee] = {verse: r.verse, attendu: r.attendu};
+      var safeId = r.nom.replace(/[^a-zA-Z0-9_\-]/g, "_").slice(0, 100);
+      batch.push(setDoc(doc(db, "cotisations", safeId), {
+        nom: r.nom,
+        annees: COTIS_DATA[r.nom],
+        updatedAt: serverTimestamp(),
+        updatedBy: curUser ? curUser.email : "bureau"
+      }));
+    });
+    Promise.all(batch).then(function(){
+      cs("sh-import");
+      showToast(rows.length + " cotisation(s) importee(s) et sauvegardee(s)");
+      logAct("Import fichier : " + rows.length + " cotisations mises a jour", "or");
+      if (curPage === "finances") renderFinances();
+    }).catch(function(e){ showToast("Erreur : " + e.message); });
+  }
+});
+
 
 </script>
 </body>
