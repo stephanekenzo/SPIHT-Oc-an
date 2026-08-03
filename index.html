@@ -208,6 +208,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--noir);color:var(--blanc);
 .caisse-solde{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:8px 10px;background:var(--gm);border-radius:8px;}
 .resume-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);}
 .resume-row:last-child{border-bottom:none;}
+
+.caisse-row{position:relative;padding-right:56px !important;}
+.mv-edit-btn,.mv-del-btn{position:absolute;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:12px;padding:4px;opacity:.5;transition:opacity .2s;}
+.mv-edit-btn:hover,.mv-del-btn:hover{opacity:1;}
+.mv-edit-btn{right:26px;}
+.mv-del-btn{right:2px;}
 .btn-add-small{padding:4px 10px;font-size:10px;border-radius:6px;background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.3);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;}
 
 /* ══ IMPORT CSS ══ */
@@ -1622,39 +1628,39 @@ var CAISSES_DATA = {
     nom: "Commission de recouvrement",
     icone: "💼",
     mouvements: [
-      {type:"entree",label:"Recouvrement cotisations membres",montant:375000,date:"12/05/2025"},
-      {type:"sortie",label:"Reverse a la Tresorerie",montant:150000,date:"12/05/2025"}
+      {mid:"r1",type:"entree",label:"Recouvrement cotisations membres",montant:375000,date:"12/05/2025"},
+      {mid:"r2",type:"sortie",label:"Reverse a la Tresorerie",montant:150000,date:"12/05/2025"}
     ]
   },
   tresorerie: {
     nom: "Tresorerie principale",
     icone: "🏦",
     mouvements: [
-      {type:"entree",label:"Commission de recouvrement recue",montant:150000,date:"12/05/2025"},
-      {type:"entree",label:"Contributions membres (versement 1)",montant:215000,date:"12/05/2025"},
-      {type:"entree",label:"Contributions membres (versement 2)",montant:60000,date:"12/05/2025"},
-      {type:"sortie",label:"Impressions et cachet (marathon)",montant:11500,date:"12/05/2025"},
-      {type:"sortie",label:"Transport + impressions signature PV creation compte",montant:15000,date:"12/05/2025"}
+      {mid:"t1",type:"entree",label:"Commission de recouvrement recue",montant:150000,date:"12/05/2025"},
+      {mid:"t2",type:"entree",label:"Contributions membres (versement 1)",montant:215000,date:"12/05/2025"},
+      {mid:"t3",type:"entree",label:"Contributions membres (versement 2)",montant:60000,date:"12/05/2025"},
+      {mid:"t4",type:"sortie",label:"Impressions et cachet (marathon)",montant:11500,date:"12/05/2025"},
+      {mid:"t5",type:"sortie",label:"Transport + impressions signature PV creation compte",montant:15000,date:"12/05/2025"}
     ]
   },
   secretariat: {
     nom: "Secretariat",
     icone: "📋",
     mouvements: [
-      {type:"entree",label:"Fonds secretariat",montant:277000,date:"12/05/2025"},
-      {type:"sortie",label:"Impression et infographie - Oumar",montant:45000,date:"12/05/2025"},
-      {type:"sortie",label:"Commission de recouvrement secretariat",montant:15000,date:"12/05/2025"},
-      {type:"sortie",label:"Dejeuner formation membres",montant:70000,date:"12/05/2025"},
-      {type:"sortie",label:"Accueil membres SPIHT Mvila",montant:80000,date:"12/05/2025"},
-      {type:"sortie",label:"Impressions + cachet",montant:25000,date:"12/05/2025"},
-      {type:"sortie",label:"Bouteille d'eau",montant:3000,date:"12/05/2025"}
+      {mid:"s1",type:"entree",label:"Fonds secretariat",montant:277000,date:"12/05/2025"},
+      {mid:"s2",type:"sortie",label:"Impression et infographie - Oumar",montant:45000,date:"12/05/2025"},
+      {mid:"s3",type:"sortie",label:"Commission de recouvrement secretariat",montant:15000,date:"12/05/2025"},
+      {mid:"s4",type:"sortie",label:"Dejeuner formation membres",montant:70000,date:"12/05/2025"},
+      {mid:"s5",type:"sortie",label:"Accueil membres SPIHT Mvila",montant:80000,date:"12/05/2025"},
+      {mid:"s6",type:"sortie",label:"Impressions + cachet",montant:25000,date:"12/05/2025"},
+      {mid:"s7",type:"sortie",label:"Bouteille d'eau",montant:3000,date:"12/05/2025"}
     ]
   },
   ancienne: {
     nom: "Ancienne Tresorerie",
     icone: "🗄️",
     mouvements: [
-      {type:"entree",label:"Solde ancienne caisse",montant:795000,date:"12/05/2025"}
+      {mid:"a1",type:"entree",label:"Solde ancienne caisse",montant:795000,date:"12/05/2025"}
     ]
   }
 };
@@ -1848,14 +1854,24 @@ function renderFinances() {
     if (entrees.length) {
       caissesHtml += '<div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Entrees</div>';
       entrees.forEach(function(m){
-        caissesHtml += '<div class="caisse-row"><span class="caisse-label">'+m.label+'<span class="tag-in" style="margin-left:6px">ENTREE</span></span><span class="caisse-mt" style="color:#2ECC71">+ '+Number(m.montant).toLocaleString("fr-FR")+' F</span></div>';
+        var mid = m.mid || "";
+        caissesHtml += '<div class="caisse-row"><span class="caisse-label">'+m.label+'<span class="tag-in" style="margin-left:6px">ENTREE</span></span>';
+        caissesHtml += '<span class="caisse-mt" style="color:#2ECC71">+ '+Number(m.montant).toLocaleString("fr-FR")+' F</span>';
+        caissesHtml += '<button class="mv-edit-btn" data-caisse="'+key+'" data-mid="'+mid+'" title="Modifier">✏️</button>';
+        caissesHtml += '<button class="mv-del-btn" data-caisse="'+key+'" data-mid="'+mid+'" title="Supprimer">🗑️</button>';
+        caissesHtml += '</div>';
       });
       caissesHtml += '<div style="font-size:10px;color:var(--ts);text-align:right;margin-bottom:8px">Total entrees : '+Number(totE).toLocaleString("fr-FR")+' FCFA</div>';
     }
     if (sorties.length) {
       caissesHtml += '<div style="font-size:10px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Sorties</div>';
       sorties.forEach(function(m){
-        caissesHtml += '<div class="caisse-row"><span class="caisse-label">'+m.label+'<span class="tag-out" style="margin-left:6px">SORTIE</span></span><span class="caisse-mt" style="color:#E74C3C">- '+Number(m.montant).toLocaleString("fr-FR")+' F</span></div>';
+        var mid2 = m.mid || "";
+        caissesHtml += '<div class="caisse-row"><span class="caisse-label">'+m.label+'<span class="tag-out" style="margin-left:6px">SORTIE</span></span>';
+        caissesHtml += '<span class="caisse-mt" style="color:#E74C3C">- '+Number(m.montant).toLocaleString("fr-FR")+' F</span>';
+        caissesHtml += '<button class="mv-edit-btn" data-caisse="'+key+'" data-mid="'+mid2+'" title="Modifier">✏️</button>';
+        caissesHtml += '<button class="mv-del-btn" data-caisse="'+key+'" data-mid="'+mid2+'" title="Supprimer">🗑️</button>';
+        caissesHtml += '</div>';
       });
       caissesHtml += '<div style="font-size:10px;color:var(--ts);text-align:right;margin-bottom:8px">Total sorties : '+Number(totS).toLocaleString("fr-FR")+' FCFA</div>';
     }
@@ -1865,9 +1881,17 @@ function renderFinances() {
   });
   document.getElementById("fin-caisses").innerHTML = caissesHtml;
 
-  // Boutons caisse
-  document.getElementById("fin-caisses").querySelectorAll("button[data-caisse]").forEach(function(btn){
+  // Boutons caisse (+ Mouvement)
+  document.getElementById("fin-caisses").querySelectorAll(".btn-add-small[data-caisse]").forEach(function(btn){
     btn.addEventListener("click",function(){openMouvement(btn.dataset.caisse);});
+  });
+  // Boutons modifier mouvement
+  document.getElementById("fin-caisses").querySelectorAll(".mv-edit-btn").forEach(function(btn){
+    btn.addEventListener("click",function(){ editMouvement(btn.dataset.caisse, btn.dataset.mid); });
+  });
+  // Boutons supprimer mouvement
+  document.getElementById("fin-caisses").querySelectorAll(".mv-del-btn").forEach(function(btn){
+    btn.addEventListener("click",function(){ deleteMouvement(btn.dataset.caisse, btn.dataset.mid); });
   });
 
   // Resume
@@ -1955,13 +1979,62 @@ document.getElementById("btn-add-cotis").addEventListener("click", function(){
   os("sh-cotis");
 });
 
-// Ajouter mouvement de caisse
+// Ajouter / modifier mouvement de caisse
+var mvEditingMid = null; // null = nouveau mouvement, sinon = ID du mouvement en édition
+
 function openMouvement(caisseKey) {
+  mvEditingMid = null;
   document.getElementById("mv-caisse").value = caisseKey;
+  document.getElementById("mv-caisse").disabled = false;
+  document.getElementById("mv-type").value = "entree";
   document.getElementById("mv-label").value = "";
   document.getElementById("mv-montant").value = "";
   document.getElementById("mv-date").value = new Date().toISOString().slice(0,10);
+  document.querySelector('#sh-mouv .sheet-title').textContent = "Nouveau mouvement de caisse";
+  document.getElementById("save-mouv").textContent = "Enregistrer";
   os("sh-mouv");
+}
+
+function editMouvement(caisseKey, mid) {
+  var caisse = CAISSES_DATA[caisseKey];
+  if (!caisse) return;
+  var mv = caisse.mouvements.find(function(m){ return m.mid === mid; });
+  if (!mv) { showToast("Mouvement introuvable"); return; }
+  mvEditingMid = mid;
+  document.getElementById("mv-caisse").value = caisseKey;
+  document.getElementById("mv-caisse").disabled = true;
+  document.getElementById("mv-caisse").dataset.lockedValue = caisseKey;
+  document.getElementById("mv-type").value = mv.type;
+  document.getElementById("mv-label").value = mv.label;
+  document.getElementById("mv-montant").value = mv.montant;
+  // Convertir date JJ/MM/AAAA -> AAAA-MM-JJ pour l'input date
+  var parts = (mv.date||"").split("/");
+  document.getElementById("mv-date").value = parts.length===3 ? (parts[2]+"-"+parts[1]+"-"+parts[0]) : new Date().toISOString().slice(0,10);
+  document.querySelector('#sh-mouv .sheet-title').textContent = "Modifier le mouvement";
+  document.getElementById("save-mouv").textContent = "Enregistrer les modifications";
+  os("sh-mouv");
+}
+
+function deleteMouvement(caisseKey, mid) {
+  var caisse = CAISSES_DATA[caisseKey];
+  if (!caisse) return;
+  var mv = caisse.mouvements.find(function(m){ return m.mid === mid; });
+  if (!mv) return;
+  if (!confirm('Supprimer ce mouvement ?\n\n"' + mv.label + '" — ' + Number(mv.montant).toLocaleString("fr-FR") + ' FCFA')) return;
+
+  caisse.mouvements = caisse.mouvements.filter(function(m){ return m.mid !== mid; });
+  syncDot("loading");
+  setDoc(doc(db, "caisses", caisseKey), {
+    nom: caisse.nom,
+    icone: caisse.icone,
+    mouvements: caisse.mouvements,
+    updatedAt: serverTimestamp(),
+    updatedBy: curUser ? curUser.email : "bureau"
+  }).then(function() {
+    showToast("Mouvement supprime");
+    logAct("Mouvement supprime : " + mv.label, "rouge");
+    renderFinances();
+  }).catch(function(e) { showToast("Erreur : " + e.message); });
 }
 
 document.getElementById("btn-add-mouvement").addEventListener("click", function(){
@@ -1969,7 +2042,8 @@ document.getElementById("btn-add-mouvement").addEventListener("click", function(
 });
 
 document.getElementById("save-mouv").addEventListener("click", function(){
-  var caisseKey = document.getElementById("mv-caisse").value;
+  var caisseSelect = document.getElementById("mv-caisse");
+  var caisseKey = caisseSelect.disabled ? caisseSelect.dataset.lockedValue : caisseSelect.value;
   var type = document.getElementById("mv-type").value;
   var label = document.getElementById("mv-label").value.trim();
   var montant = parseInt(document.getElementById("mv-montant").value)||0;
@@ -1977,8 +2051,19 @@ document.getElementById("save-mouv").addEventListener("click", function(){
   if (!label || !montant) { showToast("Libelle et montant requis"); return; }
   if (!CAISSES_DATA[caisseKey]) { showToast("Caisse introuvable"); return; }
   var dateStr = date ? new Date(date).toLocaleDateString("fr-FR") : new Date().toLocaleDateString("fr-FR");
-  CAISSES_DATA[caisseKey].mouvements.push({type:type, label:label, montant:montant, date:dateStr});
-  // Sauvegarder sur Firestore
+
+  if (mvEditingMid) {
+    // Modification d'un mouvement existant
+    var mv = CAISSES_DATA[caisseKey].mouvements.find(function(m){ return m.mid === mvEditingMid; });
+    if (mv) {
+      mv.type = type; mv.label = label; mv.montant = montant; mv.date = dateStr;
+    }
+  } else {
+    // Nouveau mouvement avec ID unique
+    var newMid = caisseKey.slice(0,1) + Date.now();
+    CAISSES_DATA[caisseKey].mouvements.push({mid:newMid, type:type, label:label, montant:montant, date:dateStr});
+  }
+
   syncDot("loading");
   setDoc(doc(db, "caisses", caisseKey), {
     nom: CAISSES_DATA[caisseKey].nom,
@@ -1988,8 +2073,9 @@ document.getElementById("save-mouv").addEventListener("click", function(){
     updatedBy: curUser ? curUser.email : "bureau"
   }).then(function() {
     cs("sh-mouv");
-    showToast((type==="entree"?"Entree":"Sortie")+" : "+Number(montant).toLocaleString("fr-FR")+" FCFA");
-    logAct((type==="entree"?"Entree":"Sortie")+" caisse "+CAISSES_DATA[caisseKey].nom+" : "+label, "bleu");
+    showToast(mvEditingMid ? "Mouvement modifie" : (type==="entree"?"Entree":"Sortie")+" : "+Number(montant).toLocaleString("fr-FR")+" FCFA");
+    logAct((mvEditingMid?"Mouvement modifie":(type==="entree"?"Entree":"Sortie")+" caisse "+CAISSES_DATA[caisseKey].nom)+" : "+label, "bleu");
+    mvEditingMid = null;
     renderFinances();
   }).catch(function(e) { showToast("Erreur : " + e.message); });
 });
@@ -2160,20 +2246,25 @@ function genRapportMembres(periode) {
   html += '<h2>Liste des membres — Etat des cotisations</h2>';
   html += '<table><thead><tr><th>#</th><th>Etablissement</th><th>Promoteur</th><th>Telephone</th><th>Attendu</th><th>Verse</th><th>Solde</th><th>Statut</th><th>Carte</th></tr></thead><tbody>'+rows+'</tbody></table>';
 
-  // Historique par année depuis COTIS_DATA
+  // Historique par année depuis COTIS_DATA — avec detail annees en retard
   html += '<h2>Historique des cotisations par annee (2024-2026)</h2>';
-  html += '<table><thead><tr><th>Etablissement</th><th style="text-align:right">2024 Verse</th><th style="text-align:right">2025 Verse</th><th style="text-align:right">2026 Verse</th><th style="text-align:right">Total verse</th><th style="text-align:right">Solde global</th></tr></thead><tbody>';
+  html += '<table><thead><tr><th>Etablissement</th><th style="text-align:right">2024</th><th style="text-align:right">2025</th><th style="text-align:right">2026</th><th style="text-align:right">Total verse</th><th style="text-align:right">Solde global</th><th>Annees en retard</th></tr></thead><tbody>';
   Object.keys(COTIS_DATA).forEach(function(nom){
     var d = COTIS_DATA[nom];
     var v24=(d[2024]||{}).verse||0, v25=(d[2025]||{}).verse||0, v26=(d[2026]||{}).verse||0;
     var a24=(d[2024]||{}).attendu||60000, a25=(d[2025]||{}).attendu||60000, a26=(d[2026]||{}).attendu||60000;
     var tv=v24+v25+v26, du=(a24-v24)+(a25-v25)+(a26-v26);
+    var retards = [];
+    if (v24 < a24) retards.push('2024 (' + Number(a24-v24).toLocaleString('fr-FR') + ' F)');
+    if (v25 < a25) retards.push('2025 (' + Number(a25-v25).toLocaleString('fr-FR') + ' F)');
+    if (v26 < a26) retards.push('2026 (' + Number(a26-v26).toLocaleString('fr-FR') + ' F)');
     html += '<tr><td><strong>'+nom+'</strong></td>';
-    html += '<td style="text-align:right;color:'+(v24>=(d[2024]||{}).attendu||60000?'#27AE60':v24>0?'#E67E22':'#C0392B')+'">'+Number(v24).toLocaleString('fr-FR')+'</td>';
-    html += '<td style="text-align:right;color:'+(v25>=(d[2025]||{}).attendu||60000?'#27AE60':v25>0?'#E67E22':'#C0392B')+'">'+Number(v25).toLocaleString('fr-FR')+'</td>';
-    html += '<td style="text-align:right;color:'+(v26>=(d[2026]||{}).attendu||60000?'#27AE60':v26>0?'#E67E22':'#C0392B')+'">'+Number(v26).toLocaleString('fr-FR')+'</td>';
+    html += '<td style="text-align:right;color:'+(v24>=a24?'#27AE60':v24>0?'#E67E22':'#C0392B')+'">'+Number(v24).toLocaleString('fr-FR')+'</td>';
+    html += '<td style="text-align:right;color:'+(v25>=a25?'#27AE60':v25>0?'#E67E22':'#C0392B')+'">'+Number(v25).toLocaleString('fr-FR')+'</td>';
+    html += '<td style="text-align:right;color:'+(v26>=a26?'#27AE60':v26>0?'#E67E22':'#C0392B')+'">'+Number(v26).toLocaleString('fr-FR')+'</td>';
     html += '<td style="text-align:right;font-weight:bold">'+Number(tv).toLocaleString('fr-FR')+'</td>';
-    html += '<td style="text-align:right;font-weight:bold;color:'+(du<=0?'#27AE60':'#C0392B')+'">'+Number(Math.max(0,du)).toLocaleString('fr-FR')+'</td></tr>';
+    html += '<td style="text-align:right;font-weight:bold;color:'+(du<=0?'#27AE60':'#C0392B')+'">'+Number(Math.max(0,du)).toLocaleString('fr-FR')+'</td>';
+    html += '<td style="font-size:9px;color:#C0392B">'+(retards.length ? retards.join(', ') : '<span class="ok">Aucun retard</span>')+'</td></tr>';
   });
   html += '</tbody></table>';
   html += rpSig() + rpFt() + '</body></html>';
