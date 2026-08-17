@@ -1137,6 +1137,16 @@ body.mode-membre #nav-macotis { display:flex !important; }
     <div class="fgp"><label class="flbl">Experience / Competences</label><textarea class="fta" id="pf-exp" rows="3" placeholder="Annees d'experience, etablissements precedents, competences..."></textarea></div>
     <div class="fgp"><label class="flbl">Contact du candidat *</label><input type="tel" class="finp" id="pf-contact" placeholder="Telephone ou WhatsApp"></div>
     <div class="fgp"><label class="flbl">Ajoute par</label><input class="finp" id="pf-referant" placeholder="Votre etablissement (optionnel)"></div>
+    <div class="fgp">
+      <label class="flbl">CV (optionnel)</label>
+      <input type="file" id="pf-cv-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none">
+      <div class="imp-dropzone" id="pf-cv-dropzone" style="padding:18px">
+        <div class="imp-dropzone-ico" style="font-size:24px">📄</div>
+        <div class="imp-dropzone-text" style="font-size:12px">Cliquez pour joindre le CV</div>
+        <div class="imp-dropzone-sub">PDF, Word ou image — max 650 Ko</div>
+      </div>
+      <div id="pf-cv-chip"></div>
+    </div>
   </div></div>
   <div class="sheet-footer"><button class="btn btn-ghost" id="cancel-profil">Annuler</button><button class="btn btn-primary" id="save-profil" style="flex:1;justify-content:center">Ajouter le profil</button></div>
 </div></div>
@@ -5071,13 +5081,15 @@ function renderProfils() {
       html += '<span class="emp-cat-pill">' + p.poste + '</span>';
       html += '</div></div>';
       if (p.experience) html += '<div class="emp-detail">' + p.experience + '</div>';
+      if (p.cvFileData) html += '<div style="margin-top:6px"><span class="emp-cat-pill" style="background:rgba(39,174,96,.15);color:#2ECC71;border-color:rgba(39,174,96,.3)">📎 CV joint</span></div>';
       html += '<div class="emp-meta"><span>Ajoute le ' + d2t(p.createdAt) + '</span><span>' + (p.referant||"—") + '</span></div>';
-      html += '<div style="display:flex;gap:8px;margin-top:10px">';
+      html += '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
       if (p.contact) {
         var telClean2 = p.contact.replace(/[\s\-\.\+]/g,"");
         html += '<a href="tel:' + p.contact + '" class="btn btn-call btn-sm" style="flex:1;justify-content:center">📞 Appeler</a>';
         html += '<a href="https://wa.me/' + telClean2 + '" target="_blank" class="btn btn-wa btn-sm" style="flex:1;justify-content:center">💬 WhatsApp</a>';
       }
+      if (p.cvFileData) html += '<button class="btn btn-ghost btn-sm" data-voir-cv="' + p.pid + '">👁️ Voir CV</button>';
       html += '<button class="btn btn-danger btn-sm" data-suppr-profil="' + p.pid + '">🗑️</button>';
       html += '</div></div>';
     });
@@ -5092,6 +5104,52 @@ function renderProfils() {
       }).catch(function(e){ showToast("Erreur : " + e.message); });
     });
   });
+
+  document.getElementById("emp-profils-list").querySelectorAll("[data-voir-cv]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var p = profilsCandidats.find(function(x){ return x.pid === btn.dataset.voirCv; });
+      if (!p || !p.cvFileData) { showToast("CV introuvable"); return; }
+      voirDocumentGenerique(p.cvFileData, p.cvFileName || (p.nom + " - CV"), "CV de " + p.nom);
+    });
+  });
+}
+
+/* Ouvre un fichier base64 dans un viewer plein ecran avec bouton fermer (reutilise pour CV et autres docs) */
+function voirDocumentGenerique(fileData, fileName, titre) {
+  try {
+    var isPdf = (fileData||"").indexOf("application/pdf") > -1 || (fileName||"").toLowerCase().endsWith(".pdf");
+    var isImg = (fileData||"").indexOf("image/") > -1;
+    var pageHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' +
+      '<title>' + titre + '</title>' +
+      '<style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#1a1a1a;height:100vh;overflow:hidden;font-family:sans-serif;}' +
+      '.topbar{position:fixed;top:0;left:0;right:0;height:52px;background:#111;display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:999;border-bottom:1px solid #333;}' +
+      '.titre-doc{color:#F5F0E8;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;}' +
+      '.btns{display:flex;gap:8px;}' +
+      '.btn-close{background:#C0392B;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;}' +
+      '.btn-dl{background:#C9A84C;color:#000;border:none;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;}' +
+      '.viewer{position:absolute;top:52px;left:0;right:0;bottom:0;background:#333;overflow:auto;}' +
+      '.viewer embed{width:100%;height:100%;border:none;}' +
+      '.viewer img{width:100%;height:auto;display:block;}' +
+      '.fallback{color:#F5F0E8;text-align:center;padding:40px 20px;font-size:14px;}' +
+      '</style></head><body>' +
+      '<div class="topbar"><span class="titre-doc">' + titre + '</span><div class="btns">' +
+      '<a class="btn-dl" href="' + fileData + '" download="' + fileName + '">⬇️ Telecharger</a>' +
+      '<button class="btn-close" onclick="window.close()">✕ Fermer</button>' +
+      '</div></div>' +
+      '<div class="viewer">' +
+      (isPdf ? '<embed src="' + fileData + '" type="application/pdf" width="100%" height="100%">'
+        : isImg ? '<img src="' + fileData + '" alt="' + titre + '">'
+        : '<div class="fallback">Apercu non disponible pour ce type de fichier.<br><br>Utilisez le bouton Telecharger ci-dessus.</div>') +
+      '</div></body></html>';
+
+    var w = window.open("about:blank", "_blank");
+    if (!w) { showToast("Autorisez les popups pour ouvrir le document"); return; }
+    w.document.open();
+    w.document.write(pageHtml);
+    w.document.close();
+  } catch(err) {
+    showToast("Erreur a l'ouverture : " + err.message);
+  }
 }
 
 /* Onglets */
@@ -5147,11 +5205,46 @@ document.getElementById("save-offre").addEventListener("click", function(){
 });
 
 /* Sheet profil */
+var pfCvFileData = null;
+
 document.getElementById("btn-nouveau-profil").addEventListener("click", function(){
   ["pf-nom","pf-exp","pf-contact","pf-referant"].forEach(function(id){ document.getElementById(id).value = ""; });
   document.getElementById("pf-poste").value = "Receptionniste";
+  pfCvFileData = null;
+  document.getElementById("pf-cv-chip").innerHTML = "";
   os("sh-profil");
 });
+
+var pfCvDropzone = document.getElementById("pf-cv-dropzone");
+var pfCvInput = document.getElementById("pf-cv-input");
+pfCvDropzone.addEventListener("click", function(){ pfCvInput.click(); });
+pfCvInput.addEventListener("change", function(e){
+  if (e.target.files.length) handlePfCvFile(e.target.files[0]);
+});
+
+function handlePfCvFile(file) {
+  var LIMITE_OCTETS = 650 * 1024;
+  if (file.size > LIMITE_OCTETS) {
+    showToast("Fichier trop volumineux (" + Math.round(file.size/1024) + " Ko). Maximum 650 Ko.");
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    if (e.target.result.length > 950000) {
+      showToast("Fichier encode trop volumineux. Compressez-le et reessayez.");
+      return;
+    }
+    pfCvFileData = { name: file.name, base64: e.target.result };
+    document.getElementById("pf-cv-chip").innerHTML =
+      '<div class="imp-file-chip"><div class="imp-file-ico">📄</div><div class="imp-file-name">' + file.name + ' (' + Math.round(file.size/1024) + ' Ko)</div><button class="imp-file-remove" id="pf-cv-remove">✕</button></div>';
+    document.getElementById("pf-cv-remove").addEventListener("click", function(){
+      pfCvFileData = null;
+      document.getElementById("pf-cv-chip").innerHTML = "";
+    });
+  };
+  reader.onerror = function(){ showToast("Erreur de lecture du fichier"); };
+  reader.readAsDataURL(file);
+}
 document.getElementById("close-sh-profil").addEventListener("click", function(){ cs("sh-profil"); });
 document.getElementById("cancel-profil").addEventListener("click", function(){ cs("sh-profil"); });
 document.getElementById("sh-profil").addEventListener("click", function(e){ if(e.target===this) cs("sh-profil"); });
@@ -5161,17 +5254,23 @@ document.getElementById("save-profil").addEventListener("click", function(){
   var contact = document.getElementById("pf-contact").value.trim();
   if (!nom || !contact) { showToast("Nom et contact requis"); return; }
   syncDot("loading");
-  addDoc(collection(db, "profils_candidats"), {
+  var docData = {
     nom: nom,
     poste: document.getElementById("pf-poste").value,
     experience: document.getElementById("pf-exp").value.trim(),
     contact: contact,
     referant: document.getElementById("pf-referant").value.trim(),
     createdAt: serverTimestamp()
-  }).then(function(){
+  };
+  if (pfCvFileData) {
+    docData.cvFileName = pfCvFileData.name;
+    docData.cvFileData = pfCvFileData.base64;
+  }
+  addDoc(collection(db, "profils_candidats"), docData).then(function(){
     cs("sh-profil");
-    showToast("Profil ajoute");
+    showToast("Profil ajoute" + (pfCvFileData ? " avec CV" : ""));
     if (curRole === "bureau") logAct("Profil candidat ajoute : " + nom, "or");
+    pfCvFileData = null;
   }).catch(function(e){ showToast("Erreur : " + e.message); });
 });
 
