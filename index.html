@@ -561,8 +561,12 @@ body.mode-membre #nav-macotis { display:flex !important; }
       </div>
     </div>
 
-    <!-- BLACKLIST RH -->
+    <!-- BLACKLIST -->
     <div class="page" id="page-blacklist">
+      <div class="bl-tabs" style="margin-bottom:10px">
+        <div class="bl-tab on" id="bl-cat-employes" data-cat="employe">👤 Employes</div>
+        <div class="bl-tab" id="bl-cat-clients" data-cat="client">🧳 Clients</div>
+      </div>
       <button class="btn btn-danger btn-full" id="btn-signaler-bl" style="margin-bottom:12px">🚫 Signaler un employe</button>
       <input class="bl-search" id="bl-srch" placeholder="Rechercher un nom avant recrutement...">
       <div class="bl-tabs">
@@ -794,22 +798,14 @@ body.mode-membre #nav-macotis { display:flex !important; }
 <!-- Sheet ajouter signalement blacklist -->
 <div class="sheet-ov" id="sh-bl"><div class="sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-header"><div class="sheet-title">Signaler un employe</div><button class="sheet-close" id="close-sh-bl">✕</button></div>
+  <div class="sheet-header"><div class="sheet-title" id="bl-sheet-titre">Signaler un employe</div><button class="sheet-close" id="close-sh-bl">✕</button></div>
   <div class="sheet-body"><div class="fg">
     <div style="background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.3);border-radius:8px;padding:10px 12px;font-size:11px;color:#F39C12;margin-bottom:4px">⏳ Ce signalement sera visible par tous les membres uniquement apres validation du Bureau.</div>
     <div class="fgp"><label class="flbl">Nom complet *</label><input class="finp" id="bl-nom" placeholder="NOM Prenom"></div>
-    <div class="fgp"><label class="flbl">Poste occupe</label><input class="finp" id="bl-poste" placeholder="ex : Receptionniste, Cuisinier..."></div>
-    <div class="fgp"><label class="flbl">Etablissement concerne *</label><input class="finp" id="bl-etab" placeholder="Nom de l'hotel/restaurant"></div>
-    <div class="fgp"><label class="flbl">Type de faute *</label>
-      <select class="fsel2" id="bl-type">
-        <option value="Vol">Vol</option>
-        <option value="Agression">Agression</option>
-        <option value="Abandon de poste">Abandon de poste</option>
-        <option value="Fraude">Fraude</option>
-        <option value="Harcelement">Harcelement</option>
-        <option value="Faute grave">Faute grave</option>
-        <option value="Autre">Autre</option>
-      </select>
+    <div class="fgp"><label class="flbl" id="bl-poste-label">Poste occupe</label><input class="finp" id="bl-poste" placeholder="ex : Receptionniste, Cuisinier..."></div>
+    <div class="fgp"><label class="flbl" id="bl-etab-label">Etablissement concerne *</label><input class="finp" id="bl-etab" placeholder="Nom de l'hotel/restaurant"></div>
+    <div class="fgp"><label class="flbl">Motif *</label>
+      <select class="fsel2" id="bl-type"></select>
     </div>
     <div class="fgp"><label class="flbl">Description</label><textarea class="fta" id="bl-desc" rows="3" placeholder="Details des faits (optionnel)"></textarea></div>
     <div class="fgp"><label class="flbl">Date approximative</label><input type="date" class="finp" id="bl-date"></div>
@@ -3343,8 +3339,48 @@ function genCarteMembre(fid) {
 
 var blacklist = [];
 var curBlTab = "validees";
+var curBlCat = "employe";
+
+var FAUTES_EMPLOYE = ["Vol","Agression","Abandon de poste","Fraude","Harcelement","Faute grave","Autre"];
+var FAUTES_CLIENT = ["Depart sans payer","Degradation / Casse","Reservation non honoree","Comportement agressif","Nuisance / Trouble","Autre"];
+
+function majFormulaireBlacklist() {
+  var typeSel = document.getElementById("bl-type");
+  var fautes = curBlCat === "client" ? FAUTES_CLIENT : FAUTES_EMPLOYE;
+  typeSel.innerHTML = fautes.map(function(f){ return '<option value="' + f + '">' + f + '</option>'; }).join("");
+
+  if (curBlCat === "client") {
+    document.getElementById("bl-sheet-titre").textContent = "Signaler un client";
+    document.getElementById("bl-poste-label").textContent = "Motif du sejour (optionnel)";
+    document.getElementById("bl-poste").placeholder = "ex : Sejour tourisme, affaires...";
+    document.getElementById("bl-etab-label").textContent = "Etablissement concerne *";
+    document.getElementById("btn-signaler-bl").textContent = "🚫 Signaler un client";
+  } else {
+    document.getElementById("bl-sheet-titre").textContent = "Signaler un employe";
+    document.getElementById("bl-poste-label").textContent = "Poste occupe";
+    document.getElementById("bl-poste").placeholder = "ex : Receptionniste, Cuisinier...";
+    document.getElementById("bl-etab-label").textContent = "Etablissement concerne *";
+    document.getElementById("btn-signaler-bl").textContent = "🚫 Signaler un employe";
+  }
+}
+
+document.getElementById("bl-cat-employes").addEventListener("click", function(){
+  curBlCat = "employe";
+  document.getElementById("bl-cat-employes").classList.add("on");
+  document.getElementById("bl-cat-clients").classList.remove("on");
+  majFormulaireBlacklist();
+  rbl();
+});
+document.getElementById("bl-cat-clients").addEventListener("click", function(){
+  curBlCat = "client";
+  document.getElementById("bl-cat-clients").classList.add("on");
+  document.getElementById("bl-cat-employes").classList.remove("on");
+  majFormulaireBlacklist();
+  rbl();
+});
 
 function initBlacklist() {
+  majFormulaireBlacklist();
   onSnapshot(collection(db,"blacklist"), function(snap) {
     blacklist = snap.docs.map(function(d) { return Object.assign({}, d.data(), {bid: d.id}); });
     blacklist.sort(function(a,b){
@@ -3361,8 +3397,9 @@ function initBlacklist() {
 
 function rbl() {
   var q = (document.getElementById("bl-srch").value || "").toLowerCase();
-  var validees = blacklist.filter(function(b){return b.statut==="validee";});
-  var attente = blacklist.filter(function(b){return b.statut==="attente";});
+  var parCategorie = blacklist.filter(function(b){ return (b.categorie || "employe") === curBlCat; });
+  var validees = parCategorie.filter(function(b){return b.statut==="validee";});
+  var attente = parCategorie.filter(function(b){return b.statut==="attente";});
 
   document.getElementById("bl-count-val").textContent = validees.length;
   document.getElementById("bl-count-att").textContent = attente.length;
@@ -3375,12 +3412,13 @@ function rbl() {
   }
 
   var d2t = function(ts){ return ts && ts.toDate ? ts.toDate().toLocaleDateString("fr-FR") : ts || "—"; };
+  var motLabel = curBlCat === "client" ? "client" : "employe";
 
   var html = "";
   if (!liste.length) {
     html = '<div class="bl-empty"><div class="bl-empty-ico">' + (curBlTab==="validees"?"🔍":"⏳") + '</div>';
     html += curBlTab === "validees"
-      ? (q ? "Aucun resultat pour cette recherche" : "Aucun employe blackliste pour le moment")
+      ? (q ? "Aucun resultat pour cette recherche" : "Aucun " + motLabel + " blackliste pour le moment")
       : "Aucun signalement en attente de validation";
     html += '</div>';
   } else {
@@ -3390,7 +3428,11 @@ function rbl() {
       html += '<div class="bl-avatar">' + ini(b.nom) + '</div>';
       html += '<div style="flex:1;min-width:0">';
       html += '<div class="bl-nom">' + b.nom + '</div>';
-      html += '<div class="bl-poste">' + (b.poste || "Poste non precise") + ' — ' + b.etablissement + '</div>';
+      if (curBlCat === "client") {
+        html += '<div class="bl-poste">' + b.etablissement + (b.poste ? ' — ' + b.poste : '') + '</div>';
+      } else {
+        html += '<div class="bl-poste">' + (b.poste || "Poste non precise") + ' — ' + b.etablissement + '</div>';
+      }
       html += '<div class="bl-faute-badge">⚠️ ' + b.typeFaute + '</div>';
       if (b.statut === "attente") html += ' <span class="bl-pending-badge">⏳ En attente</span>';
       html += '</div></div>';
@@ -3462,6 +3504,7 @@ document.getElementById("save-bl").addEventListener("click", function() {
   if (!nom || !etab) { showToast("Nom et etablissement requis"); return; }
   syncDot("loading");
   addDoc(collection(db, "blacklist"), {
+    categorie: curBlCat,
     nom: nom.toUpperCase(),
     poste: document.getElementById("bl-poste").value.trim(),
     etablissement: etab,
@@ -4477,7 +4520,7 @@ document.getElementById("btn-import-repertoire").addEventListener("click", async
 });
 
 
-document.getElementById("btn-signaler-bl").addEventListener("click", function(){ os("sh-bl"); });
+document.getElementById("btn-signaler-bl").addEventListener("click", function(){ majFormulaireBlacklist(); os("sh-bl"); });
 
 /* ══════════════════════════════════════════════════
    IMPORT COMPTE-RENDU REUNION 05/08/2026 — Projets & Activites
